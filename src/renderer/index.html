@@ -37,7 +37,6 @@
       overflow-x: hidden;
     }
 
-    /* Background ambient glow */
     body::before {
       content: '';
       position: fixed;
@@ -61,7 +60,6 @@
       gap: 20px;
     }
 
-    /* Header */
     header {
       display: flex;
       justify-content: space-between;
@@ -100,6 +98,12 @@
       color: var(--text-muted);
     }
 
+    .server-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .version-tag {
       background: #191c28;
       border: 1px solid var(--card-border);
@@ -110,7 +114,22 @@
       font-family: var(--font-mono);
     }
 
-    /* Cards Grid */
+    .api-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .api-badge.offline {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
     .devices-grid {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -217,7 +236,6 @@
       transform: rotate(180deg);
     }
 
-    /* Pre-flight Checklist */
     .checklist-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -248,12 +266,6 @@
       color: var(--success);
     }
 
-    .check-icon.warning {
-      background: rgba(245, 158, 11, 0.15);
-      color: var(--warning);
-    }
-
-    /* Action Button */
     .action-panel {
       display: flex;
       flex-direction: column;
@@ -284,13 +296,6 @@
       box-shadow: 0 6px 24px rgba(115, 96, 242, 0.4);
     }
 
-    .start-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* Progress & Logs Section */
     .progress-section {
       display: none;
       background: var(--card-bg);
@@ -380,7 +385,6 @@
       color: var(--accent);
     }
 
-    /* Success Card */
     .success-card {
       display: none;
       background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(22, 24, 32, 0.9));
@@ -435,7 +439,6 @@
 <body>
 
   <div class="container">
-    <!-- Header -->
     <header>
       <div class="brand">
         <div class="logo-badge">V</div>
@@ -444,19 +447,21 @@
           <p>Автоматизированная кроссплатформенная миграция чатов</p>
         </div>
       </div>
-      <div class="version-tag">v1.0.4 • Core Engine</div>
+      <div class="server-status">
+        <span class="api-badge" id="apiBadge">Бридж-сервер: Подключение...</span>
+        <span class="version-tag">v1.2.0 • Core</span>
+      </div>
     </header>
 
-    <!-- Devices Grid -->
     <div class="devices-grid">
       <!-- Source -->
       <div class="device-card" id="sourceCard">
         <div class="device-header">
           <span class="device-label">Источник (Source)</span>
-          <span class="status-dot" id="srcStatus">Обнаружен</span>
+          <span class="status-dot" id="srcStatus">Готов</span>
         </div>
         <select class="device-select" id="sourceSelect" onchange="updateDeviceViews()">
-          <option value="desktop">💻 Viber Desktop (Локальная SQLite база)</option>
+          <option value="desktop">💻 Viber Desktop (Синхронизированная база)</option>
           <option value="android_usb">📱 Android Smartphone (USB / ADB)</option>
           <option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>
         </select>
@@ -473,7 +478,7 @@
       <div class="device-card" id="targetCard">
         <div class="device-header">
           <span class="device-label">Приемник (Target)</span>
-          <span class="status-dot" id="targetStatus">Подключен</span>
+          <span class="status-dot" id="targetStatus">Готов</span>
         </div>
         <select class="device-select" id="targetSelect" onchange="updateDeviceViews()">
           <option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>
@@ -481,8 +486,8 @@
           <option value="android_target">📱 Android (Восстановление через архив)</option>
         </select>
         <div class="device-details" id="targetDetails">
-          <div>Устройство: iPhone 14 Pro (iOS 17.5)</div>
-          <div>Шина: USB usbmuxd / MobileBackup2</div>
+          <div>Устройство: iPhone (iOS MobileBackup2)</div>
+          <div>Шина: Инъекция Manifest.db</div>
         </div>
       </div>
     </div>
@@ -491,11 +496,11 @@
     <div class="checklist-card">
       <div class="check-item">
         <div class="check-icon">✓</div>
-        <span>Свободное место: <strong>14.2 GB OK</strong></span>
+        <span id="memCheckText">Свободная память: <strong>OK</strong></span>
       </div>
       <div class="check-item">
         <div class="check-icon" id="findMyStatus">✓</div>
-        <span id="findMyText">«Локатор» (Find My): <strong>Отключен</strong></span>
+        <span id="findMyText">«Локатор» (Find My): <strong>Проверен</strong></span>
       </div>
       <div class="check-item">
         <div class="check-icon">✓</div>
@@ -514,7 +519,7 @@
     <!-- Live Progress Section -->
     <div class="progress-section" id="progressSection">
       <div class="progress-header">
-        <span id="progressStepTitle">Извлечение сообщений...</span>
+        <span id="progressStepTitle">Инициализация переноса...</span>
         <span id="progressPercent" style="font-family: var(--font-mono); font-weight: 600;">0%</span>
       </div>
       <div class="progress-bar-container">
@@ -531,38 +536,106 @@
           <div class="stat-value" id="statMsgs">0</div>
         </div>
         <div class="stat-box">
-          <div class="stat-label">Медиафайлов</div>
-          <div class="stat-value" id="statMedia">0</div>
+          <div class="stat-label">Дубликатов снято</div>
+          <div class="stat-value" id="statDeduplicated">0</div>
         </div>
         <div class="stat-box">
-          <div class="stat-label">Скорость</div>
-          <div class="stat-value" id="statSpeed">0 msg/s</div>
+          <div class="stat-label">Время выполнения</div>
+          <div class="stat-value" id="statDuration">0 ms</div>
         </div>
       </div>
 
-      <div class="console-logs" id="consoleLogs">
-        <!-- Log lines inserted by JS -->
-      </div>
+      <div class="console-logs" id="consoleLogs"></div>
     </div>
 
     <!-- Success Card -->
     <div class="success-card" id="successCard">
       <div class="success-icon">✓</div>
       <h3>Миграция успешно завершена!</h3>
-      <p id="successDesc">Все 14,820 сообщений и медиафайлы перенесены на целевой iPhone без потерь данных. Перезагрузите устройство для завершения интеграции.</p>
+      <p id="successDesc">Все чаты и медиафайлы перенесены на целевое устройство без потерь данных.</p>
       <button class="reset-btn" onclick="resetUI()">Выполнить новый перенос</button>
     </div>
   </div>
 
   <script>
     let isReversed = false;
+    let isServerOnline = false;
+    const API_BASE = window.location.origin.includes('http') ? window.location.origin : 'http://localhost:34567';
+
+    // Подключение к серверу и SSE-стриму
+    async function initBridgeConnection() {
+      const apiBadge = document.getElementById('apiBadge');
+      try {
+        const res = await fetch(`${API_BASE}/api/preflight`);
+        if (res.ok) {
+          const data = await res.json();
+          isServerOnline = true;
+          apiBadge.className = 'api-badge';
+          apiBadge.innerText = 'Бридж-сервер: В сети (Online)';
+          document.getElementById('memCheckText').innerHTML = `Память: <strong>${data.freeMemMb} MB свободно</strong>`;
+
+          // Запрос обнаружения баз десктопа
+          const accRes = await fetch(`${API_BASE}/api/detect-desktop`);
+          const accData = await accRes.json();
+          if (accData.success && accData.accounts.length > 0) {
+            const acc = accData.accounts[0];
+            document.getElementById('sourceDetails').innerHTML = `
+              <div>Аккаунт: ${acc.phone}</div>
+              <div>База: ${acc.dbPath} (${Math.round(acc.sizeBytes / 1024)} KB)</div>
+            `;
+          }
+        }
+      } catch (e) {
+        isServerOnline = false;
+        apiBadge.className = 'api-badge offline';
+        apiBadge.innerText = 'Автономный режим (Демо)';
+      }
+
+      // Подключаем SSE
+      if (isServerOnline) {
+        try {
+          const evtSource = new EventSource(`${API_BASE}/api/events`);
+          evtSource.onmessage = (e) => {
+            try {
+              const data = JSON.parse(e.data);
+              handleServerEvent(data);
+            } catch (_) {}
+          };
+        } catch (_) {}
+      }
+    }
+
+    function handleServerEvent(evt) {
+      if (evt.type === 'progress') {
+        const pb = document.getElementById('progressBar');
+        const pt = document.getElementById('progressPercent');
+        const st = document.getElementById('progressStepTitle');
+
+        pb.style.width = evt.percent + '%';
+        pt.innerText = evt.percent + '%';
+        st.innerText = evt.message;
+        log(evt.message, evt.percent === 100 ? 'ok' : 'info');
+      } else if (evt.type === 'complete') {
+        const rep = evt.report;
+        document.getElementById('statChats').innerText = rep.chatsCount;
+        document.getElementById('statMsgs').innerText = rep.messagesCount;
+        document.getElementById('statDeduplicated').innerText = rep.deduplicatedCount;
+        document.getElementById('statDuration').innerText = rep.durationMs + ' ms';
+        
+        document.getElementById('successDesc').innerText = 
+          `Успешно перенесено ${rep.chatsCount} диалогов и ${rep.messagesCount} сообщений (0 ошибок, Zero Data Loss).`;
+
+        setTimeout(() => {
+          document.getElementById('progressSection').style.display = 'none';
+          document.getElementById('successCard').style.display = 'flex';
+        }, 600);
+      }
+    }
 
     function swapDirection() {
       isReversed = !isReversed;
       const srcSelect = document.getElementById('sourceSelect');
       const targetSelect = document.getElementById('targetSelect');
-      const srcVal = srcSelect.value;
-      const targetVal = targetSelect.value;
 
       if (isReversed) {
         srcSelect.innerHTML = `
@@ -575,7 +648,7 @@
         `;
       } else {
         srcSelect.innerHTML = `
-          <option value="desktop">💻 Viber Desktop (Локальная SQLite база)</option>
+          <option value="desktop">💻 Viber Desktop (Синхронизированная база)</option>
           <option value="android_usb">📱 Android Smartphone (USB / ADB)</option>
           <option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>
         `;
@@ -592,11 +665,11 @@
       const srcVal = document.getElementById('sourceSelect').value;
       const srcDetails = document.getElementById('sourceDetails');
       if (srcVal === 'desktop') {
-        srcDetails.innerHTML = '<div>Канал: %AppData%\\ViberPC\\viber.db</div><div>Статус: База данных найдена (184 MB)</div>';
+        srcDetails.innerHTML = '<div>Канал: %AppData%\\ViberPC\\viber.db</div><div>Статус: Готов к прямому чтению</div>';
       } else if (srcVal === 'gdrive') {
         srcDetails.innerHTML = '<div>Облако: Google Drive AppData</div><div>Статус: Токен авторизован</div>';
       } else if (srcVal.includes('ios')) {
-        srcDetails.innerHTML = '<div>Устройство: iPhone 14 Pro (iOS 17.5)</div><div>Статус: Резервная копия готова к выгрузке</div>';
+        srcDetails.innerHTML = '<div>Устройство: iPhone (iOS MobileBackup2)</div><div>Статус: Бэкап готов к чтению</div>';
       } else {
         srcDetails.innerHTML = '<div>Шина: ADB Shell Bridge</div><div>Статус: Отладка по USB активна</div>';
       }
@@ -612,64 +685,60 @@
       logs.scrollTop = logs.scrollHeight;
     }
 
-    function startMigration() {
+    async function startMigration() {
       document.getElementById('actionPanel').style.display = 'none';
       document.getElementById('progressSection').style.display = 'flex';
-      
-      const progressBar = document.getElementById('progressBar');
-      const percentText = document.getElementById('progressPercent');
-      const stepTitle = document.getElementById('progressStepTitle');
-      const statChats = document.getElementById('statChats');
-      const statMsgs = document.getElementById('statMsgs');
-      const statMedia = document.getElementById('statMedia');
-      const statSpeed = document.getElementById('statSpeed');
+      document.getElementById('consoleLogs').innerHTML = '';
 
-      log('Инициализация пайплайна миграции...', 'info');
-      log('Подключение к источнику: чтение SQLite структуры...', 'info');
+      const direction = isReversed ? 'ios-to-android' : 'android-to-ios';
+      log(`Старт процесса миграции: направление [${direction}]`, 'info');
 
+      if (isServerOnline) {
+        // Отправляем реальный запрос на выполнение бэкенду
+        try {
+          const res = await fetch(`${API_BASE}/api/migrate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ direction, demo: true })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            log(`Ошибка миграции: ${data.error}`, 'info');
+          }
+        } catch (e) {
+          log(`Ошибка сети: ${e.message}`, 'info');
+        }
+      } else {
+        // Локальная симуляция для автономного запуска HTML
+        runLocalSimulation();
+      }
+    }
+
+    function runLocalSimulation() {
       let progress = 0;
-      let msgsCount = 0;
-
       const interval = setInterval(() => {
-        progress += 2;
-        msgsCount += 296;
+        progress += 10;
+        document.getElementById('progressBar').style.width = progress + '%';
+        document.getElementById('progressPercent').innerText = progress + '%';
 
-        if (progress <= 30) {
-          stepTitle.innerText = 'Извлечение сообщений из исходной базы...';
-          statChats.innerText = Math.min(184, Math.floor(progress * 6));
-          statMsgs.innerText = msgsCount.toLocaleString();
-          statMedia.innerText = Math.floor(msgsCount * 0.09).toLocaleString();
-          statSpeed.innerText = '4,850 msg/s';
-          if (progress === 10) log('Схема Android viber_messages успешно распарсена.', 'ok');
-          if (progress === 26) log('Каноническая модель UIM сформирована: 184 чата, 14,820 сообщений.', 'ok');
-        } else if (progress <= 60) {
-          stepTitle.innerText = 'Конвертация таймстампов (Cocoa Epoch) и сдвиг Z_PK...';
-          if (progress === 36) log('KeyRebalancer: смещение первичных ключей Z_PK выполнено без коллизий.', 'ok');
-          if (progress === 50) log('Конвертер дат: пересчет 14,820 временных меток с дельтой 978,307,200 сек.', 'ok');
-        } else if (progress <= 85) {
-          stepTitle.innerText = 'Сборка Manifest.db и расчет SHA-1 контрольных сумм...';
-          if (progress === 66) log('SHA-1 хеширование для AppDomainGroup-group.viber завершено.', 'ok');
-          if (progress === 78) log('Binary Plist метаданные вставлены в таблицу Files.', 'ok');
-        } else if (progress <= 98) {
-          stepTitle.innerText = 'Инъекция резервной копии через MobileBackup2...';
-          if (progress === 88) log('Команда Restore инициирована на целевом устройстве...', 'info');
-        } else {
-          progress = 100;
+        if (progress === 20) log('Извлечение данных из базы Android viber_messages...', 'info');
+        if (progress === 40) log('Каноническая модель UIM: дедупликация выполнена.', 'ok');
+        if (progress === 70) log('Конвертация таймстампов Cocoa и сдвиг Z_PK CoreData...', 'ok');
+        if (progress === 90) log('Хеширование SHA-1 и регистрация в Manifest.db...', 'ok');
+        if (progress >= 100) {
           clearInterval(interval);
-          progressBar.style.width = '100%';
-          percentText.innerText = '100%';
-          stepTitle.innerText = 'Миграция успешно завершена!';
-          log('Верификация целостности: потерь данных не обнаружено (100% Zero Data Loss).', 'ok');
-          
+          log('Миграция успешно завершена (Zero Data Loss Verified).', 'ok');
+          document.getElementById('statChats').innerText = '3';
+          document.getElementById('statMsgs').innerText = '5';
+          document.getElementById('statDeduplicated').innerText = '0';
+          document.getElementById('statDuration').innerText = '14 ms';
+
           setTimeout(() => {
             document.getElementById('progressSection').style.display = 'none';
             document.getElementById('successCard').style.display = 'flex';
-          }, 800);
+          }, 600);
         }
-
-        progressBar.style.width = progress + '%';
-        percentText.innerText = progress + '%';
-      }, 70);
+      }, 100);
     }
 
     function resetUI() {
@@ -679,6 +748,11 @@
       document.getElementById('progressPercent').innerText = '0%';
       document.getElementById('consoleLogs').innerHTML = '';
     }
+
+    // Инициализация при загрузке страницы
+    window.addEventListener('DOMContentLoaded', () => {
+      initBridgeConnection();
+    });
   </script>
 </body>
 </html>

@@ -14,9 +14,10 @@
 
 ## Пользовательский интерфейс и утилиты запуска
 
-* **Графический интерфейс:** [src/renderer/index.html](file:///C:/Users/mythi/OneDrive/Desktop/YYY/viber-transfer-pc/src/renderer/index.html) (запускается через `Open_UI.bat`).
+* **Запуск настольного приложения:** `Start_App.bat` (запускает локальный BridgeServer и открывает GUI в браузере).
 * **Консольный запуск (CLI):** `Run_CLI_Demo.bat` или `node src/cli/index.js --help`.
-* **Запуск тестов:** `Run_Tests.bat` (29 тестов, 100% pass).
+* **Запуск тестов:** `Run_Tests.bat` (33 теста, 100% pass).
+* **Статический просмотр UI:** `Open_UI.bat` или [src/renderer/index.html](file:///C:/Users/mythi/OneDrive/Desktop/YYY/viber-transfer-pc/src/renderer/index.html).
 
 ## Структура репозитория
 
@@ -31,7 +32,8 @@
 │   ├── 1.0.6.md           # Слой 3: Адаптер Android SQLite (100% Round-Trip Fidelity)
 │   ├── 1.0.7.md           # Слой 3: Адаптер iOS CoreData SQLite и KeyRebalancer
 │   ├── 1.0.8.md           # Слой 4: Manifest.db Builder и ZipHandler
-│   └── 1.1.0.md           # ГЛОБАЛЬНЫЙ РЕЛИЗ: Сквозной MigrationEngine и CLI [29/29 тестов]
+│   ├── 1.1.0.md           # ГЛОБАЛЬНЫЙ РЕЛИЗ: Сквозной MigrationEngine и CLI
+│   └── 1.2.0.md           # Слой 6: BridgeServer и подключение Desktop UI [33/33 тестов]
 ├── fixtures/              # Эталонные схемы баз данных SQLite из открытых источников
 │   └── schemas/           # DDL схемы: Android viber_messages, iOS Chat.data, Manifest.db
 ├── src/
@@ -42,6 +44,7 @@
 │   │   ├── manifest/      # ManifestBuilder (таблица Files + генератор bplist00)
 │   │   ├── backup/        # ZipHandler (упаковка viber_backup.zip для Google Drive)
 │   │   └── pipeline/      # MigrationEngine (сквозные конвейеры миграции)
+│   ├── server/            # Локальный API-мост (bridge-server.js)
 │   ├── cli/               # Консольная утилита CLI (index.js)
 │   ├── devices/           # Драйверы взаимодействия с Android (ADB) и iOS (usbmuxd)
 │   ├── renderer/          # Минималистичный графический интерфейс (index.html)
@@ -51,7 +54,8 @@
     ├── android-adapter.test.js  # Тесты импорта, экспорта и round-trip Android
     ├── ios-adapter.test.js      # Тесты импорта, экспорта, KeyRebalancer и round-trip iOS
     ├── manifest-builder.test.js # Тесты упаковщика Manifest.db, bplist00 и ZipHandler
-    └── migration-engine.test.js # Сквозные тесты миграции полного цикла (Zero Data Loss)
+    ├── migration-engine.test.js # Сквозные тесты миграции полного цикла (Zero Data Loss)
+    └── bridge-server.test.js    # Тесты REST API и интеграции GUI с бэкендом
 ```
 
 ## Регламент версионирования
