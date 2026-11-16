@@ -809,7 +809,11 @@
         <label style="font-size: 12px; color: var(--text-muted);">Папка резервной копии iTunes MobileSync:</label>
         <div class="input-group">
           <input type="text" class="path-input" id="targetBackupInput" placeholder="C:\Users\...\Apple Computer\MobileSync\Backup\<UDID>" oninput="updateSummary()">
-          <button class="browse-btn" onclick="browseFolder()">📁 Выбрать папку бэкапа...</button>
+          <button class="browse-btn" id="browseFolderBtn" onclick="browseFolder()">📁 Выбрать папку бэкапа...</button>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
+          <button type="button" class="browse-btn" style="font-size: 11px; padding: 4px 10px;" onclick="useDefaultAppleBackupFolder()">⚡ Вставить стандартную папку MobileSync</button>
+          <span style="font-size: 11px; color: var(--warning);" id="browseFolderHint"></span>
         </div>
       </div>
     </div>
@@ -1079,7 +1083,22 @@
       updateSummary();
     }
 
+    function useDefaultAppleBackupFolder() {
+      // Стандартный путь бэкапов Apple на Windows
+      const defaultPath = 'C:\\Users\\' + (navigator.userAgent.includes('Windows') ? 'Пользователь' : 'User') + '\\AppData\\Roaming\\Apple Computer\\MobileSync\\Backup';
+      const actualPath = (systemDevices && systemDevices.ios && systemDevices.ios.backups && systemDevices.ios.backups.length > 0)
+        ? systemDevices.ios.backups[0].backupPath
+        : (processPathHint || 'C:\\Users\\mythi\\AppData\\Roaming\\Apple Computer\\MobileSync\\Backup');
+      
+      document.getElementById('targetBackupInput').value = actualPath;
+      updateSummary();
+      log(`Указан стандартный путь резервной копии iTunes: ${actualPath}`, 'info');
+    }
+
+    let processPathHint = 'C:\\Users\\mythi\\AppData\\Roaming\\Apple Computer\\MobileSync\\Backup';
+
     async function browseFile(type) {
+      log('Открыто системное окно выбора файла...', 'info');
       try {
         const res = await fetch(`${API_BASE}/api/browse`, {
           method: 'POST',
@@ -1096,13 +1115,29 @@
             switchSourceTab('desktop');
           }
           updateSummary();
+          log(`Выбран файл: ${data.selectedPath}`, 'ok');
+        } else if (!data.success && data.error) {
+          log(`Диалог: ${data.error}`, 'warn');
         }
       } catch (e) {
-        alert('Не удалось открыть диалог: ' + e.message);
+        log(`Не удалось открыть диалог: ${e.message}`, 'warn');
       }
     }
 
     async function browseFolder() {
+      const btn = document.getElementById('browseFolderBtn');
+      const hint = document.getElementById('browseFolderHint');
+      const oldText = btn ? btn.innerText : '📁 Выбрать папку бэкапа...';
+
+      if (btn) {
+        btn.innerText = '⌛ Окно открыто...';
+        btn.disabled = true;
+      }
+      if (hint) {
+        hint.innerText = 'Окно выбора открыто на переднем плане. Если вы его не видите, проверьте панель задач Windows.';
+      }
+      log('Открыто системное окно выбора папки бэкапа iPhone. Выберите папку бэкапа...', 'info');
+
       try {
         const res = await fetch(`${API_BASE}/api/browse`, {
           method: 'POST',
@@ -1113,9 +1148,20 @@
         if (data.success && data.selectedPath) {
           document.getElementById('targetBackupInput').value = data.selectedPath;
           updateSummary();
+          log(`Выбрана папка бэкапа iTunes: ${data.selectedPath}`, 'ok');
+        } else if (!data.success && data.error) {
+          log(`Диалог папки: ${data.error}`, 'warn');
         }
       } catch (e) {
-        alert('Не удалось открыть диалог: ' + e.message);
+        log(`Не удалось открыть системный диалог: ${e.message}`, 'warn');
+      } finally {
+        if (btn) {
+          btn.innerText = oldText;
+          btn.disabled = false;
+        }
+        if (hint) {
+          hint.innerText = '';
+        }
       }
     }
 

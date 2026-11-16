@@ -200,22 +200,75 @@ const server = http.createServer((req, res) => {
         return;
       }
 
-      try {
-        const { execSync } = require('node:child_process');
-        let psCmd;
-        if (isFolder) {
-          psCmd = 'powershell -NoProfile -STA -Command "Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description = \'Выберите папку бэкапа iTunes для iPhone\'; if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $d.SelectedPath }"';
-        } else {
-          psCmd = 'powershell -NoProfile -STA -Command "Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.OpenFileDialog; $d.Filter = \'Viber Базы и Архивы (*.db;*.zip;*.sqlite)|*.db;*.zip;*.sqlite|Все файлы (*.*)|*.*\'; $d.Title = \'Выберите базу Viber или архив Google Drive\'; if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $d.FileName }"';
-        }
+      const { exec } = require('node:child_process');
 
-        const selected = execSync(psCmd, { encoding: 'utf8', timeout: 60000, stdio: ['pipe', 'pipe', 'ignore'] }).trim();
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, selectedPath: selected || null }));
-      } catch (err) {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: err.message }));
+      let psScript;
+      if (isFolder) {
+        psScript = `
+Add-Type -AssemblyName System.Windows.Forms
+$form = New-Object System.Windows.Forms.Form
+$form.TopMost = $true
+$form.StartPosition = 'CenterScreen'
+$form.Width = 1; $form.Height = 1; $form.Opacity = 0.01; $form.ShowInTaskbar = $false
+$form.Show()
+$form.BringToFront()
+$form.Activate()
+
+$d = New-Object System.Windows.Forms.FolderBrowserDialog
+$d.Description = "Выберите папку бэкапа iTunes для iPhone"
+$d.ShowNewFolderButton = $true
+
+$appData = [Environment]::GetFolderPath('ApplicationData')
+$defaultApple = Join-Path $appData "Apple Computer\\MobileSync\\Backup"
+if (Test-Path $defaultApple) {
+    $d.SelectedPath = $defaultApple
+}
+
+$res = $d.ShowDialog($form)
+if ($res -eq [System.Windows.Forms.DialogResult]::OK) {
+    Write-Output $d.SelectedPath
+}
+$form.Close()
+`;
+      } else {
+        psScript = `
+Add-Type -AssemblyName System.Windows.Forms
+$form = New-Object System.Windows.Forms.Form
+$form.TopMost = $true
+$form.StartPosition = 'CenterScreen'
+$form.Width = 1; $form.Height = 1; $form.Opacity = 0.01; $form.ShowInTaskbar = $false
+$form.Show()
+$form.BringToFront()
+$form.Activate()
+
+$d = New-Object System.Windows.Forms.OpenFileDialog
+$d.Title = "Выберите базу Viber или архив Google Drive"
+$d.Filter = "Viber Базы и Архивы (*.db;*.zip;*.sqlite)|*.db;*.zip;*.sqlite|Все файлы (*.*)|*.*"
+
+$res = $d.ShowDialog($form)
+if ($res -eq [System.Windows.Forms.DialogResult]::OK) {
+    Write-Output $d.FileName
+}
+$form.Close()
+`;
       }
+
+      const b64 = Buffer.from(psScript, 'utf16le').toString('base64');
+      const cmd = `powershell.exe -NoProfile -STA -EncodedCommand ${b64}`;
+
+      exec(cmd, { encoding: 'utf8', timeout: 120000 }, (err, stdout) => {
+        if (err && err.killed) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Время ожидания выбора истекло' }));
+          return;
+        }
+        const selected = (stdout || '').trim();
+        const lines = selected.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#<') && !l.startsWith('<'));
+        const cleanPath = lines.length > 0 ? lines[lines.length - 1] : null;
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, selectedPath: cleanPath || null }));
+      });
     });
     return;
   }
