@@ -1,7 +1,8 @@
 @echo off
+@chcp 65001 > nul
 title Viber Transfer PC - Unit Test Suite
 echo ============================================================
-echo   Running Automated Unit Tests (node:test)
+echo   Запуск автоматических тестов (node:test)
 echo ============================================================
 echo.
 "C:\Program Files\nodejs\node.exe" --test tests/**/*.test.js

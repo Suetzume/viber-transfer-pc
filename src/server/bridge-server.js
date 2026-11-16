@@ -389,18 +389,57 @@ const server = http.createServer((req, res) => {
   }
 });
 
-function startServer(port = PORT) {
+function freePortIfBusy(port) {
+  if (process.platform !== 'win32') return;
+  try {
+    const { execSync } = require('node:child_process');
+    const findCmd = `powershell -NoProfile -Command "(Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue).OwningProcess"`;
+    const pidStr = execSync(findCmd, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }).trim();
+    const pid = parseInt(pidStr, 10);
+    if (pid && pid !== process.pid) {
+      console.log(`[!] Порт ${port} был занят предыдущим процессом (PID ${pid}). Освобождаю порт...`);
+      execSync(`powershell -NoProfile -Command "Stop-Process -Id ${pid} -Force -ErrorAction SilentlyContinue"`, { stdio: 'ignore' });
+    }
+  } catch (_) {}
+}
+
+function startServer(port = PORT, autoFree = true) {
   return new Promise((resolve, reject) => {
+    let handled = false;
+
+    const onError = (err) => {
+      if (handled) return;
+      handled = true;
+      if (err.code === 'EADDRINUSE' && autoFree && process.platform === 'win32') {
+        console.log(`[!] Порт ${port} занят. Автоматически освобождаю порт и перезапускаю сервер...`);
+        freePortIfBusy(port);
+        setTimeout(() => {
+          server.listen(port, () => {
+            console.log(`[+] Viber Transfer Bridge Server запущен на http://localhost:${port}`);
+            resolve(server);
+          });
+        }, 600);
+      } else {
+        reject(err);
+      }
+    };
+
+    server.once('error', onError);
+
+    const onListen = () => {
+      if (handled) return;
+      handled = true;
+      server.removeListener('error', onError);
+      console.log(`[+] Viber Transfer Bridge Server запущен на http://localhost:${port}`);
+      resolve(server);
+    };
+
     if (server.listening) {
       server.close(() => {
-        server.listen(port, () => {
-          resolve(server);
-        });
+        server.listen(port, onListen);
       });
     } else {
-      server.listen(port, () => {
-        resolve(server);
-      });
+      server.listen(port, onListen);
     }
   });
 }
@@ -429,6 +468,14 @@ if (require.main === module) {
     // Автоматическое открытие в браузере при запуске скрипта
     const startCmd = process.platform === 'win32' ? 'start' : (process.platform === 'darwin' ? 'open' : 'xdg-open');
     require('node:child_process').exec(`${startCmd} http://localhost:${PORT}`);
+  }).catch((err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`[!] Сервер уже активен на http://localhost:${PORT}. Открываю интерфейс в браузере...`);
+      const startCmd = process.platform === 'win32' ? 'start' : (process.platform === 'darwin' ? 'open' : 'xdg-open');
+      require('node:child_process').exec(`${startCmd} http://localhost:${PORT}`);
+    } else {
+      console.error('Ошибка запуска сервера:', err);
+    }
   });
 }
 

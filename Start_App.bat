@@ -1,4 +1,5 @@
 @echo off
+@chcp 65001 > nul
 title Viber Transfer PC - Desktop Application
 echo ============================================================
 echo   Запуск Viber Transfer PC Bridge Server на порту 34567

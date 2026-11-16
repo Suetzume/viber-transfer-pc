@@ -1,4 +1,5 @@
 @echo off
+@chcp 65001 > nul
 title Viber Transfer PC - Stress & Scalability Benchmark
 echo ============================================================
 echo   Запуск нагрузочного стресс-теста на 50 000 сообщений
