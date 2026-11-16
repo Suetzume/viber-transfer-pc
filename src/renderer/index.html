@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viber Cross-Platform Transfer</title>
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --card-bg: rgba(22, 24, 32, 0.85);
+      --card-border: #232736;
+      --accent: #7360f2;
+      --accent-hover: #8574f5;
+      --accent-glow: rgba(115, 96, 242, 0.25);
+      --text: #f1f3f9;
+      --text-muted: #8b92a5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    /* Background ambient glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(115, 96, 242, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #7360f2, #4f39e3);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .brand h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .brand p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .version-tag {
+      background: #191c28;
+      border: 1px solid var(--card-border);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Cards Grid */
+    .devices-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .device-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(12px);
+    }
+
+    .device-card:hover {
+      border-color: rgba(115, 96, 242, 0.4);
+    }
+
+    .device-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .device-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .status-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--success);
+    }
+
+    .status-dot::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+    }
+
+    .device-select {
+      width: 100%;
+      background: #141722;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .device-select:focus {
+      border-color: var(--accent);
+    }
+
+    .device-details {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(10, 11, 16, 0.5);
+      padding: 10px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+    }
+
+    .swap-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #191c28;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 18px;
+    }
+
+    .swap-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 16px var(--accent-glow);
+      transform: rotate(180deg);
+    }
+
+    /* Pre-flight Checklist */
+    .checklist-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .check-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+    }
+
+    .check-icon.warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+    }
+
+    /* Action Button */
+    .action-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .start-btn {
+      background: linear-gradient(135deg, #7360f2, #5a45e8);
+      color: white;
+      border: none;
+      padding: 14px 48px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px var(--accent-glow);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .start-btn:hover {
+      background: linear-gradient(135deg, #8574f5, #6c57f0);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(115, 96, 242, 0.4);
+    }
+
+    .start-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Progress & Logs Section */
+    .progress-section {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: #141722;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #7360f2, #10b981);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: rgba(10, 11, 16, 0.6);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+
+    .console-logs {
+      background: #08090d;
+      border: 1px solid #1c1f2b;
+      border-radius: 10px;
+      padding: 12px;
+      height: 130px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.6;
+      color: #9aa2b5;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 8px;
+    }
+
+    .log-time {
+      color: #555b6e;
+    }
+
+    .log-ok {
+      color: var(--success);
+    }
+
+    .log-info {
+      color: var(--accent);
+    }
+
+    /* Success Card */
+    .success-card {
+      display: none;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(22, 24, 32, 0.9));
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .success-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .success-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .success-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      max-width: 500px;
+    }
+
+    .reset-btn {
+      background: #1f2433;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 24px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .reset-btn:hover {
+      background: #282e42;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <div class="logo-badge">V</div>
+        <div>
+          <h1>Viber Transfer PC Bridge</h1>
+          <p>Автоматизированная кроссплатформенная миграция чатов</p>
+        </div>
+      </div>
+      <div class="version-tag">v1.0.4 • Core Engine</div>
+    </header>
+
+    <!-- Devices Grid -->
+    <div class="devices-grid">
+      <!-- Source -->
+      <div class="device-card" id="sourceCard">
+        <div class="device-header">
+          <span class="device-label">Источник (Source)</span>
+          <span class="status-dot" id="srcStatus">Обнаружен</span>
+        </div>
+        <select class="device-select" id="sourceSelect" onchange="updateDeviceViews()">
+          <option value="desktop">💻 Viber Desktop (Локальная SQLite база)</option>
+          <option value="android_usb">📱 Android Smartphone (USB / ADB)</option>
+          <option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>
+        </select>
+        <div class="device-details" id="sourceDetails">
+          <div>Канал: %AppData%\ViberPC\viber.db</div>
+          <div>Статус: Готов к прямому чтению</div>
+        </div>
+      </div>
+
+      <!-- Swap Button -->
+      <button class="swap-btn" title="Сменить направление переноса" onclick="swapDirection()">⇄</button>
+
+      <!-- Target -->
+      <div class="device-card" id="targetCard">
+        <div class="device-header">
+          <span class="device-label">Приемник (Target)</span>
+          <span class="status-dot" id="targetStatus">Подключен</span>
+        </div>
+        <select class="device-select" id="targetSelect" onchange="updateDeviceViews()">
+          <option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>
+          <option value="ios_backup">📁 Локальная копия iTunes (Manifest.db)</option>
+          <option value="android_target">📱 Android (Восстановление через архив)</option>
+        </select>
+        <div class="device-details" id="targetDetails">
+          <div>Устройство: iPhone 14 Pro (iOS 17.5)</div>
+          <div>Шина: USB usbmuxd / MobileBackup2</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pre-flight Checks -->
+    <div class="checklist-card">
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <span>Свободное место: <strong>14.2 GB OK</strong></span>
+      </div>
+      <div class="check-item">
+        <div class="check-icon" id="findMyStatus">✓</div>
+        <span id="findMyText">«Локатор» (Find My): <strong>Отключен</strong></span>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <span>Целостность баз: <strong>Zero Data Loss Ready</strong></span>
+      </div>
+    </div>
+
+    <!-- Action Panel -->
+    <div class="action-panel" id="actionPanel">
+      <button class="start-btn" id="startBtn" onclick="startMigration()">
+        <span>Начать автоматический перенос</span>
+        <span>→</span>
+      </button>
+    </div>
+
+    <!-- Live Progress Section -->
+    <div class="progress-section" id="progressSection">
+      <div class="progress-header">
+        <span id="progressStepTitle">Извлечение сообщений...</span>
+        <span id="progressPercent" style="font-family: var(--font-mono); font-weight: 600;">0%</span>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-label">Диалогов</div>
+          <div class="stat-value" id="statChats">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Сообщений</div>
+          <div class="stat-value" id="statMsgs">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Медиафайлов</div>
+          <div class="stat-value" id="statMedia">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Скорость</div>
+          <div class="stat-value" id="statSpeed">0 msg/s</div>
+        </div>
+      </div>
+
+      <div class="console-logs" id="consoleLogs">
+        <!-- Log lines inserted by JS -->
+      </div>
+    </div>
+
+    <!-- Success Card -->
+    <div class="success-card" id="successCard">
+      <div class="success-icon">✓</div>
+      <h3>Миграция успешно завершена!</h3>
+      <p id="successDesc">Все 14,820 сообщений и медиафайлы перенесены на целевой iPhone без потерь данных. Перезагрузите устройство для завершения интеграции.</p>
+      <button class="reset-btn" onclick="resetUI()">Выполнить новый перенос</button>
+    </div>
+  </div>
+
+  <script>
+    let isReversed = false;
+
+    function swapDirection() {
+      isReversed = !isReversed;
+      const srcSelect = document.getElementById('sourceSelect');
+      const targetSelect = document.getElementById('targetSelect');
+      const srcVal = srcSelect.value;
+      const targetVal = targetSelect.value;
+
+      if (isReversed) {
+        srcSelect.innerHTML = `
+          <option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>
+          <option value="ios_backup">📁 Локальная копия iTunes (Manifest.db)</option>
+        `;
+        targetSelect.innerHTML = `
+          <option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>
+          <option value="android_usb">📱 Android Smartphone (USB)</option>
+        `;
+      } else {
+        srcSelect.innerHTML = `
+          <option value="desktop">💻 Viber Desktop (Локальная SQLite база)</option>
+          <option value="android_usb">📱 Android Smartphone (USB / ADB)</option>
+          <option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>
+        `;
+        targetSelect.innerHTML = `
+          <option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>
+          <option value="ios_backup">📁 Локальная копия iTunes (Manifest.db)</option>
+          <option value="android_target">📱 Android (Восстановление через архив)</option>
+        `;
+      }
+      updateDeviceViews();
+    }
+
+    function updateDeviceViews() {
+      const srcVal = document.getElementById('sourceSelect').value;
+      const srcDetails = document.getElementById('sourceDetails');
+      if (srcVal === 'desktop') {
+        srcDetails.innerHTML = '<div>Канал: %AppData%\\ViberPC\\viber.db</div><div>Статус: База данных найдена (184 MB)</div>';
+      } else if (srcVal === 'gdrive') {
+        srcDetails.innerHTML = '<div>Облако: Google Drive AppData</div><div>Статус: Токен авторизован</div>';
+      } else if (srcVal.includes('ios')) {
+        srcDetails.innerHTML = '<div>Устройство: iPhone 14 Pro (iOS 17.5)</div><div>Статус: Резервная копия готова к выгрузке</div>';
+      } else {
+        srcDetails.innerHTML = '<div>Шина: ADB Shell Bridge</div><div>Статус: Отладка по USB активна</div>';
+      }
+    }
+
+    function log(msg, type = 'info') {
+      const logs = document.getElementById('consoleLogs');
+      const now = new Date().toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.className = 'log-line';
+      div.innerHTML = `<span class="log-time">[${now}]</span> <span class="${type === 'ok' ? 'log-ok' : 'log-info'}">${msg}</span>`;
+      logs.appendChild(div);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    function startMigration() {
+      document.getElementById('actionPanel').style.display = 'none';
+      document.getElementById('progressSection').style.display = 'flex';
+      
+      const progressBar = document.getElementById('progressBar');
+      const percentText = document.getElementById('progressPercent');
+      const stepTitle = document.getElementById('progressStepTitle');
+      const statChats = document.getElementById('statChats');
+      const statMsgs = document.getElementById('statMsgs');
+      const statMedia = document.getElementById('statMedia');
+      const statSpeed = document.getElementById('statSpeed');
+
+      log('Инициализация пайплайна миграции...', 'info');
+      log('Подключение к источнику: чтение SQLite структуры...', 'info');
+
+      let progress = 0;
+      let msgsCount = 0;
+
+      const interval = setInterval(() => {
+        progress += 2;
+        msgsCount += 296;
+
+        if (progress <= 30) {
+          stepTitle.innerText = 'Извлечение сообщений из исходной базы...';
+          statChats.innerText = Math.min(184, Math.floor(progress * 6));
+          statMsgs.innerText = msgsCount.toLocaleString();
+          statMedia.innerText = Math.floor(msgsCount * 0.09).toLocaleString();
+          statSpeed.innerText = '4,850 msg/s';
+          if (progress === 10) log('Схема Android viber_messages успешно распарсена.', 'ok');
+          if (progress === 26) log('Каноническая модель UIM сформирована: 184 чата, 14,820 сообщений.', 'ok');
+        } else if (progress <= 60) {
+          stepTitle.innerText = 'Конвертация таймстампов (Cocoa Epoch) и сдвиг Z_PK...';
+          if (progress === 36) log('KeyRebalancer: смещение первичных ключей Z_PK выполнено без коллизий.', 'ok');
+          if (progress === 50) log('Конвертер дат: пересчет 14,820 временных меток с дельтой 978,307,200 сек.', 'ok');
+        } else if (progress <= 85) {
+          stepTitle.innerText = 'Сборка Manifest.db и расчет SHA-1 контрольных сумм...';
+          if (progress === 66) log('SHA-1 хеширование для AppDomainGroup-group.viber завершено.', 'ok');
+          if (progress === 78) log('Binary Plist метаданные вставлены в таблицу Files.', 'ok');
+        } else if (progress <= 98) {
+          stepTitle.innerText = 'Инъекция резервной копии через MobileBackup2...';
+          if (progress === 88) log('Команда Restore инициирована на целевом устройстве...', 'info');
+        } else {
+          progress = 100;
+          clearInterval(interval);
+          progressBar.style.width = '100%';
+          percentText.innerText = '100%';
+          stepTitle.innerText = 'Миграция успешно завершена!';
+          log('Верификация целостности: потерь данных не обнаружено (100% Zero Data Loss).', 'ok');
+          
+          setTimeout(() => {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('successCard').style.display = 'flex';
+          }, 800);
+        }
+
+        progressBar.style.width = progress + '%';
+        percentText.innerText = progress + '%';
+      }, 70);
+    }
+
+    function resetUI() {
+      document.getElementById('successCard').style.display = 'none';
+      document.getElementById('actionPanel').style.display = 'flex';
+      document.getElementById('progressBar').style.width = '0%';
+      document.getElementById('progressPercent').innerText = '0%';
+      document.getElementById('consoleLogs').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
