@@ -25,15 +25,19 @@
 │   ├── 1.0.1.md           # Интеграция открытых БД и референсных схем с GitHub
 │   ├── 1.0.2.md           # Архитектурная критика и аудит рисков (FMEA)
 │   ├── 1.0.3.md           # Эталонный план и матрица TDD
-│   └── 1.0.4.md           # Каталог GitHub-решений и минималистичный UI
+│   ├── 1.0.4.md           # Каталог GitHub-решений и минималистичный UI
+│   └── 1.0.5.md           # Слой 1 (Time/Hash) и Слой 2 (UIM Contracts/Validator) [12/12 тестов]
 ├── fixtures/              # Эталонные схемы баз данных SQLite из открытых источников
 │   └── schemas/           # DDL схемы: Android viber_messages, iOS Chat.data, Manifest.db
 ├── src/
-│   ├── engine/            # Ядро конвертации (UIM, SQLite мапперы, таймстампы)
+│   ├── engine/            # Ядро конвертации
+│   │   ├── foundation/    # TimeEngine (Unix<->Cocoa) и HashService (SHA-1/SHA-256)
+│   │   └── uim/           # UIM Contracts и UIM Validator
 │   ├── devices/           # Драйверы взаимодействия с Android (ADB) и iOS (usbmuxd)
 │   ├── renderer/          # Минималистичный графический интерфейс (index.html)
 │   └── shared/            # Общие типы и контракты данных
 └── tests/                 # Модульные и интеграционные тесты (node:test)
+    └── foundation.test.js # Тесты фундамента ядра и валидатора (100% pass)
 ```
 
 ## Регламент версионирования
