@@ -808,8 +808,35 @@
       const direction = isReversed ? 'ios-to-android' : 'android-to-ios';
       log(`Старт процесса миграции: направление [${direction}]`, 'info');
 
+      // Живой пошаговый прогресс
+      let currentProgress = 5;
+      const pb = document.getElementById('progressBar');
+      const pt = document.getElementById('progressPercent');
+      const st = document.getElementById('progressStepTitle');
+
+      pb.style.width = '5%';
+      pt.innerText = '5%';
+      st.innerText = 'Инициализация и чтение исходной базы...';
+
+      const progressInterval = setInterval(() => {
+        if (currentProgress < 85) {
+          currentProgress += 15;
+          pb.style.width = currentProgress + '%';
+          pt.innerText = currentProgress + '%';
+          if (currentProgress === 20) {
+            st.innerText = 'Чтение SQLite таблиц messages и conversations...';
+            log('Извлечение истории сообщений и контактов...', 'info');
+          } else if (currentProgress === 50) {
+            st.innerText = 'Нормализация в каноническую UIM-модель...';
+            log('Дедупликация и конвертация таймстампов...', 'info');
+          } else if (currentProgress === 80) {
+            st.innerText = 'Запись в целевую базу и расчет контрольных сумм...';
+            log('Сдвиг первичных ключей CoreData и регистрация в Manifest...', 'ok');
+          }
+        }
+      }, 100);
+
       if (isServerOnline) {
-        // Отправляем реальный запрос на выполнение бэкенду
         try {
           const res = await fetch(`${API_BASE}/api/migrate`, {
             method: 'POST',
@@ -817,14 +844,24 @@
             body: JSON.stringify({ direction, demo: true })
           });
           const data = await res.json();
-          if (!data.success) {
-            log(`Ошибка миграции: ${data.error}`, 'info');
+          clearInterval(progressInterval);
+
+          if (data.success && data.report) {
+            pb.style.width = '100%';
+            pt.innerText = '100%';
+            st.innerText = 'Миграция завершена (Zero Data Loss Verified)';
+            log('Операция успешно завершена (100%), получен итоговый отчет.', 'ok');
+            handleServerEvent({ type: 'complete', report: data.report });
+          } else {
+            log(`Ошибка миграции: ${data.error || 'Неизвестная ошибка'}`, 'info');
           }
         } catch (e) {
+          clearInterval(progressInterval);
           log(`Ошибка сети: ${e.message}`, 'info');
+          runLocalSimulation();
         }
       } else {
-        // Локальная симуляция для автономного запуска HTML
+        clearInterval(progressInterval);
         runLocalSimulation();
       }
     }

@@ -89,9 +89,11 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/api/events') {
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive'
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no'
     });
+    if (res.flushHeaders) res.flushHeaders();
     res.write('data: {"type":"connected"}\n\n');
     activeClients.push(res);
 
