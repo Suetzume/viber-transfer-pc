@@ -1,6 +1,6 @@
 {
   "name": "viber-transfer-pc",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Cross-platform Viber chat transfer utility between Android and iOS",
   "main": "dist/main/index.js",
   "type": "commonjs",
@@ -22,7 +22,9 @@
     "foundation-engine",
     "android-adapter",
     "ios-adapter",
-    "key-rebalancer"
+    "key-rebalancer",
+    "manifest-builder",
+    "zip-handler"
   ],
   "author": "ViberTransfer Team",
   "license": "MIT"

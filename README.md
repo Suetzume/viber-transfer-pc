@@ -28,21 +28,25 @@
 │   ├── 1.0.4.md           # Каталог GitHub-решений и минималистичный UI
 │   ├── 1.0.5.md           # Слой 1 (Time/Hash) и Слой 2 (UIM Contracts/Validator)
 │   ├── 1.0.6.md           # Слой 3: Адаптер Android SQLite (100% Round-Trip Fidelity)
-│   └── 1.0.7.md           # Слой 3: Адаптер iOS CoreData SQLite и KeyRebalancer [20/20 тестов]
+│   ├── 1.0.7.md           # Слой 3: Адаптер iOS CoreData SQLite и KeyRebalancer
+│   └── 1.0.8.md           # Слой 4: Manifest.db Builder и ZipHandler [25/25 тестов]
 ├── fixtures/              # Эталонные схемы баз данных SQLite из открытых источников
 │   └── schemas/           # DDL схемы: Android viber_messages, iOS Chat.data, Manifest.db
 ├── src/
 │   ├── engine/            # Ядро конвертации
 │   │   ├── foundation/    # TimeEngine (Unix<->Cocoa) и HashService (SHA-1/SHA-256)
 │   │   ├── uim/           # UIM Contracts и UIM Validator
-│   │   └── adapters/      # Адаптеры Android и iOS + KeyRebalancer (сдвиг Z_PK)
+│   │   ├── adapters/      # Адаптеры Android и iOS + KeyRebalancer (сдвиг Z_PK)
+│   │   ├── manifest/      # ManifestBuilder (таблица Files + генератор bplist00)
+│   │   └── backup/        # ZipHandler (упаковка viber_backup.zip для Google Drive)
 │   ├── devices/           # Драйверы взаимодействия с Android (ADB) и iOS (usbmuxd)
 │   ├── renderer/          # Минималистичный графический интерфейс (index.html)
 │   └── shared/            # Общие типы и контракты данных
 └── tests/                 # Модульные и интеграционные тесты (node:test)
-    ├── foundation.test.js # Тесты фундамента ядра и валидатора
-    ├── android-adapter.test.js # Тесты импорта, экспорта и round-trip Android
-    └── ios-adapter.test.js     # Тесты импорта, экспорта, KeyRebalancer и round-trip iOS
+    ├── foundation.test.js       # Тесты фундамента ядра и валидатора
+    ├── android-adapter.test.js  # Тесты импорта, экспорта и round-trip Android
+    ├── ios-adapter.test.js      # Тесты импорта, экспорта, KeyRebalancer и round-trip iOS
+    └── manifest-builder.test.js # Тесты упаковщика Manifest.db, bplist00 и ZipHandler
 ```
 
 ## Регламент версионирования
