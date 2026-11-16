@@ -22,6 +22,9 @@ const {
   validateBackupForRestore
 } = require('../devices');
 
+const { unpackZip } = require('../engine/backup/zip-handler');
+const { computeManifestFileId } = require('../engine/foundation/hash-service');
+
 const PORT = process.env.PORT || 34567;
 const RENDERER_DIR = path.join(__dirname, '../renderer');
 const FIXTURES_DIR = path.join(__dirname, '../../fixtures/schemas');
@@ -176,6 +179,47 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // API: Открытие нативного диалога выбора файла или папки в Windows
+  if (url.pathname === '/api/browse' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      let params = {};
+      try { params = JSON.parse(body || '{}'); } catch (_) {}
+      const isFolder = params.type === 'folder';
+
+      if (params.mockPath !== undefined) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, selectedPath: params.mockPath }));
+        return;
+      }
+
+      if (process.platform !== 'win32') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Диалог выбора файлов поддерживается на Windows' }));
+        return;
+      }
+
+      try {
+        const { execSync } = require('node:child_process');
+        let psCmd;
+        if (isFolder) {
+          psCmd = 'powershell -NoProfile -STA -Command "Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description = \'Выберите папку бэкапа iTunes для iPhone\'; if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $d.SelectedPath }"';
+        } else {
+          psCmd = 'powershell -NoProfile -STA -Command "Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.OpenFileDialog; $d.Filter = \'Viber Базы и Архивы (*.db;*.zip;*.sqlite)|*.db;*.zip;*.sqlite|Все файлы (*.*)|*.*\'; $d.Title = \'Выберите базу Viber или архив Google Drive\'; if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $d.FileName }"';
+        }
+
+        const selected = execSync(psCmd, { encoding: 'utf8', timeout: 60000, stdio: ['pipe', 'pipe', 'ignore'] }).trim();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, selectedPath: selected || null }));
+      } catch (err) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
   // API: Предварительная диагностика системы
   if (url.pathname === '/api/preflight' && req.method === 'GET') {
     const freeMemMb = Math.round(os.freemem() / (1024 * 1024));
@@ -205,7 +249,7 @@ const server = http.createServer((req, res) => {
       } catch (_) {}
 
       const direction = params.direction || 'android-to-ios';
-      const isDemo = params.demo !== false; // По умолчанию демо-режим, если нет реальных баз
+      const isDemo = params.demo === true; // Демо ТОЛЬКО если явно передано demo: true!
 
       try {
         let report;
@@ -214,11 +258,68 @@ const server = http.createServer((req, res) => {
         };
 
         if (direction === 'android-to-ios') {
-          const androidDb = isDemo ? createDemoAndroidDb() : params.sourcePath;
-          const iosDb = new DatabaseSync(':memory:');
+          let androidDb;
+          if (isDemo) {
+            androidDb = createDemoAndroidDb();
+          } else {
+            const srcPath = params.sourcePath;
+            if (!srcPath) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: false, error: 'Укажите источник данных (файл viber.db или архив viber_backup.zip)' }));
+              return;
+            }
+            if (!fs.existsSync(srcPath)) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: false, error: `Файл не найден: ${srcPath}` }));
+              return;
+            }
+
+            if (srcPath.toLowerCase().endsWith('.zip')) {
+              // Распаковка архива Google Drive
+              onProgress({ step: 'EXTRACT', percent: 5, message: 'Распаковка архива Google Drive (viber_backup.zip)...' });
+              const zipBuf = fs.readFileSync(srcPath);
+              const entries = unpackZip(zipBuf);
+              const msgEntry = entries.find(e => e.name.toLowerCase().includes('viber_messages') || e.name.toLowerCase().includes('viber.db'));
+              if (!msgEntry) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'В выбранном zip-архиве не найдена база сообщений Viber' }));
+                return;
+              }
+              const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'viber-unpack-'));
+              const extractedDbPath = path.join(tempDir, 'viber_messages.db');
+              fs.writeFileSync(extractedDbPath, msgEntry.data);
+              androidDb = extractedDbPath;
+            } else {
+              androidDb = srcPath;
+            }
+          }
+
+          let iosDb;
+          let manifestDb;
+
+          if (params.targetPath && fs.existsSync(params.targetPath)) {
+            const manifestPath = path.join(params.targetPath, 'Manifest.db');
+            if (fs.existsSync(manifestPath)) {
+              manifestDb = manifestPath;
+              const fileId = computeManifestFileId('AppDomainGroup-group.viber', 'database/Chat.data');
+              const subDir = path.join(params.targetPath, fileId.slice(0, 2));
+              if (!fs.existsSync(subDir)) {
+                fs.mkdirSync(subDir, { recursive: true });
+              }
+              const targetIosFilePath = path.join(subDir, fileId);
+              iosDb = targetIosFilePath;
+            } else {
+              iosDb = new DatabaseSync(':memory:');
+              manifestDb = new DatabaseSync(':memory:');
+              manifestDb.exec(getSqlFixture('sample_manifest.sql'));
+            }
+          } else {
+            iosDb = new DatabaseSync(':memory:');
+            manifestDb = new DatabaseSync(':memory:');
+            manifestDb.exec(getSqlFixture('sample_manifest.sql'));
+          }
+
           const iosDdl = getSqlFixture('ios_viber_chat.sql');
-          const manifestDb = new DatabaseSync(':memory:');
-          manifestDb.exec(getSqlFixture('sample_manifest.sql'));
 
           report = migrateAndroidToIOS({
             androidDb,
@@ -289,19 +390,37 @@ const server = http.createServer((req, res) => {
 });
 
 function startServer(port = PORT) {
-  return new Promise((resolve) => {
-    server.listen(port, () => {
-      console.log(`[+] Viber Transfer Bridge Server запущен на http://localhost:${port}`);
-      resolve(server);
-    });
+  return new Promise((resolve, reject) => {
+    if (server.listening) {
+      server.close(() => {
+        server.listen(port, () => {
+          resolve(server);
+        });
+      });
+    } else {
+      server.listen(port, () => {
+        resolve(server);
+      });
+    }
   });
 }
 
 function stopServer() {
   return new Promise((resolve) => {
-    server.close(() => {
+    for (const client of activeClients) {
+      try { client.end(); } catch (_) {}
+    }
+    activeClients = [];
+    if (typeof server.closeAllConnections === 'function') {
+      try { server.closeAllConnections(); } catch (_) {}
+    }
+    if (server.listening) {
+      server.close(() => {
+        resolve();
+      });
+    } else {
       resolve();
-    });
+    }
   });
 }
 

@@ -101,10 +101,17 @@ function migrateAndroidToIOS({
     onProgress({ step: 'MANIFEST', percent: 85, message: 'Хеширование и регистрация в iOS Manifest.db...' });
     const mDb = (typeof manifestDb === 'string') ? openManifestDatabase(manifestDb) : manifestDb;
 
+    let targetSize = 1048576;
+    if (typeof targetIosDb === 'string' && fs.existsSync(targetIosDb)) {
+      try {
+        targetSize = fs.statSync(targetIosDb).size || 1048576;
+      } catch (_) {}
+    }
+
     const chatDesc = createManifestFileDescriptor({
       domain: 'AppDomainGroup-group.viber',
       relativePath: 'database/Chat.data',
-      fileSize: 1048576, // примерный или реальный размер
+      fileSize: targetSize,
       mtimeAppleSec: Math.floor(Date.now() / 1000) - 978307200
     });
     upsertManifestRecord(mDb, chatDesc);

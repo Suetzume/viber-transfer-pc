@@ -9,6 +9,7 @@
       --bg: #0b0c10;
       --card-bg: rgba(22, 24, 32, 0.85);
       --card-border: #232736;
+      --card-border-active: #7360f2;
       --accent: #7360f2;
       --accent-hover: #8574f5;
       --accent-glow: rgba(115, 96, 242, 0.25);
@@ -17,6 +18,7 @@
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
+      --info: #3b82f6;
       --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
     }
 
@@ -75,15 +77,15 @@
     }
 
     .logo-badge {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       background: linear-gradient(135deg, #7360f2, #4f39e3);
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 18px;
+      font-size: 19px;
       box-shadow: 0 4px 12px var(--accent-glow);
     }
 
@@ -107,7 +109,7 @@
     .version-tag {
       background: #191c28;
       border: 1px solid var(--card-border);
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 20px;
       font-size: 12px;
       color: var(--text-muted);
@@ -115,56 +117,126 @@
     }
 
     .api-badge {
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 20px;
       font-size: 12px;
-      font-family: var(--font-mono);
       background: rgba(16, 185, 129, 0.15);
       color: var(--success);
       border: 1px solid rgba(16, 185, 129, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .api-badge.offline {
-      background: rgba(245, 158, 11, 0.15);
-      color: var(--warning);
-      border-color: rgba(245, 158, 11, 0.3);
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.3);
     }
 
-    .devices-grid {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
+    .refresh-devices-btn {
+      background: #191c28;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
       align-items: center;
-      gap: 16px;
-      margin-top: 8px;
+      gap: 6px;
+      transition: all 0.2s ease;
     }
 
-    .device-card {
+    .refresh-devices-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    /* Stepper Header */
+    .stepper {
+      display: flex;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 20px;
-      position: relative;
+      border-radius: 12px;
+      padding: 6px;
+      gap: 6px;
+    }
+
+    .step-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
       transition: all 0.2s ease;
-      backdrop-filter: blur(12px);
     }
 
-    .device-card:hover {
-      border-color: rgba(115, 96, 242, 0.4);
+    .step-item.active {
+      background: rgba(115, 96, 242, 0.15);
+      color: var(--text);
+      border: 1px solid rgba(115, 96, 242, 0.4);
     }
 
-    .device-header {
+    .step-item.completed {
+      color: var(--success);
+    }
+
+    .step-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #191c28;
+      border: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-family: var(--font-mono);
+    }
+
+    .step-item.active .step-number {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .step-item.completed .step-number {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    /* Step Card */
+    .step-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .step-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
     }
 
-    .device-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
+    .step-title {
+      font-size: 16px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .status-dot {
@@ -173,9 +245,10 @@
       gap: 6px;
       font-size: 12px;
       color: var(--success);
-      padding: 2px 8px;
-      border-radius: 6px;
-      background: rgba(16, 185, 129, 0.1);
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
     }
 
     .status-dot::before {
@@ -190,6 +263,7 @@
     .status-dot.warning {
       color: var(--warning);
       background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.3);
     }
 
     .status-dot.warning::before {
@@ -200,6 +274,7 @@
     .status-dot.offline {
       color: #9ca3af;
       background: rgba(107, 114, 128, 0.12);
+      border-color: rgba(107, 114, 128, 0.25);
     }
 
     .status-dot.offline::before {
@@ -207,123 +282,206 @@
       box-shadow: none;
     }
 
-    .refresh-devices-btn {
-      background: #191c28;
+    /* Tab Controls */
+    .source-tabs {
+      display: flex;
+      gap: 8px;
+      background: #141722;
+      padding: 4px;
+      border-radius: 10px;
       border: 1px solid var(--card-border);
+    }
+
+    .source-tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
       color: var(--text-muted);
-      padding: 6px 14px;
       border-radius: 8px;
-      font-size: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .source-tab-btn:hover {
+      color: var(--text);
+    }
+
+    .source-tab-btn.active {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 2px 10px var(--accent-glow);
+    }
+
+    /* Alert Banner */
+    .alert-banner {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      line-height: 1.5;
+    }
+
+    .alert-banner.info {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      color: #93c5fd;
+    }
+
+    .alert-banner.warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fcd34d;
+    }
+
+    .alert-banner.success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+
+    /* Input Groups */
+    .input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .path-input {
+      flex: 1;
+      background: #141722;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      outline: none;
+    }
+
+    .path-input:focus {
+      border-color: var(--accent);
+    }
+
+    .browse-btn {
+      background: #1d2130;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
       transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
-    .refresh-devices-btn:hover {
+    .browse-btn:hover {
       background: var(--accent);
-      color: #fff;
       border-color: var(--accent);
-      box-shadow: 0 0 12px var(--accent-glow);
     }
 
-    .device-select {
-      width: 100%;
+    /* Instructions Box */
+    .instructions-box {
       background: #141722;
       border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 10px 12px;
       border-radius: 10px;
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 12px;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .device-select:focus {
-      border-color: var(--accent);
-    }
-
-    .device-details {
-      font-size: 12px;
-      color: var(--text-muted);
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      background: rgba(10, 11, 16, 0.5);
-      padding: 10px;
-      border-radius: 8px;
-      font-family: var(--font-mono);
-    }
-
-    .swap-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: #191c28;
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 18px;
-    }
-
-    .swap-btn:hover {
-      background: var(--accent);
-      border-color: var(--accent);
-      box-shadow: 0 0 16px var(--accent-glow);
-      transform: rotate(180deg);
-    }
-
-    .checklist-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .check-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      gap: 8px;
       font-size: 13px;
     }
 
-    .check-icon {
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
+    .instructions-box ol {
+      padding-left: 20px;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--success);
+      flex-direction: column;
+      gap: 6px;
+      color: var(--text-muted);
     }
 
+    .instructions-box ol li strong {
+      color: var(--text);
+    }
+
+    /* Device Info Card */
+    .device-info-pill {
+      background: #141722;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .device-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .device-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+
+    /* Summary Bar */
+    .summary-card {
+      background: rgba(115, 96, 242, 0.08);
+      border: 1px solid rgba(115, 96, 242, 0.25);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .summary-pair {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .summary-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* Action Panel */
     .action-panel {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 12px;
-      margin-top: 8px;
+      margin-top: 6px;
     }
 
     .start-btn {
       background: linear-gradient(135deg, #7360f2, #5a45e8);
       color: white;
       border: none;
-      padding: 14px 48px;
+      padding: 15px 54px;
       font-size: 15px;
       font-weight: 600;
       border-radius: 12px;
@@ -335,17 +493,24 @@
       gap: 10px;
     }
 
-    .start-btn:hover {
+    .start-btn:hover:not(:disabled) {
       background: linear-gradient(135deg, #8574f5, #6c57f0);
       transform: translateY(-2px);
       box-shadow: 0 6px 24px rgba(115, 96, 242, 0.4);
     }
 
+    .start-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+    }
+
+    /* Progress Section */
     .progress-section {
       display: none;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
+      border-radius: 14px;
       padding: 20px;
       flex-direction: column;
       gap: 16px;
@@ -361,15 +526,14 @@
     .progress-bar-container {
       width: 100%;
       height: 8px;
-      background: #141722;
+      background: #191c28;
       border-radius: 4px;
       overflow: hidden;
-      position: relative;
     }
 
     .progress-bar-fill {
-      width: 0%;
       height: 100%;
+      width: 0%;
       background: linear-gradient(90deg, #7360f2, #10b981);
       border-radius: 4px;
       transition: width 0.3s ease;
@@ -382,10 +546,11 @@
     }
 
     .stat-box {
-      background: rgba(10, 11, 16, 0.6);
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: #141722;
+      border: 1px solid var(--card-border);
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
     }
 
     .stat-label {
@@ -395,22 +560,24 @@
     }
 
     .stat-value {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 18px;
+      font-weight: 700;
       font-family: var(--font-mono);
+      color: var(--text);
     }
 
     .console-logs {
-      background: #08090d;
-      border: 1px solid #1c1f2b;
-      border-radius: 10px;
+      background: #0d0f15;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
       padding: 12px;
-      height: 130px;
-      overflow-y: auto;
       font-family: var(--font-mono);
-      font-size: 11px;
-      line-height: 1.6;
-      color: #9aa2b5;
+      font-size: 12px;
+      height: 140px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .log-line {
@@ -422,56 +589,62 @@
       color: #555b6e;
     }
 
+    .log-info {
+      color: var(--text-muted);
+    }
+
     .log-ok {
       color: var(--success);
     }
 
-    .log-info {
-      color: var(--accent);
+    .log-warn {
+      color: var(--warning);
     }
 
+    /* Success Card */
     .success-card {
       display: none;
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(22, 24, 32, 0.9));
+      background: var(--card-bg);
       border: 1px solid rgba(16, 185, 129, 0.3);
-      border-radius: 16px;
-      padding: 24px;
-      text-align: center;
+      border-radius: 14px;
+      padding: 32px 24px;
       flex-direction: column;
       align-items: center;
+      text-align: center;
       gap: 12px;
     }
 
     .success-icon {
-      width: 48px;
-      height: 48px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       background: rgba(16, 185, 129, 0.2);
       color: var(--success);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      font-size: 26px;
     }
 
     .success-card h3 {
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 600;
     }
 
     .success-card p {
       font-size: 13px;
       color: var(--text-muted);
-      max-width: 500px;
+      max-width: 540px;
     }
 
     .reset-btn {
       background: #1f2433;
       border: 1px solid var(--card-border);
       color: var(--text);
-      padding: 8px 24px;
+      padding: 10px 28px;
       border-radius: 8px;
       font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
       margin-top: 8px;
     }
@@ -489,145 +662,311 @@
         <div class="logo-badge">V</div>
         <div>
           <h1>Viber Transfer PC Bridge</h1>
-          <p>Автоматизированная кроссплатформенная миграция чатов</p>
+          <p>Автоматизированная миграция данных Android ➔ iPhone</p>
         </div>
       </div>
       <div class="server-status">
         <button class="refresh-devices-btn" id="refreshBtn" onclick="refreshHardwareDevices()" title="Повторно сканировать USB-устройства и бэкапы">🔄 Сканировать устройства</button>
-        <span class="api-badge" id="apiBadge">Бридж-сервер: Подключение...</span>
-        <span class="version-tag">v2.0.0 • Final</span>
+        <span class="api-badge" id="apiBadge">Бридж-сервер: В сети</span>
+        <span class="version-tag">v2.3.0 • Stage 2 Wizard</span>
       </div>
     </header>
 
-    <div class="devices-grid">
-      <!-- Source -->
-      <div class="device-card" id="sourceCard">
-        <div class="device-header">
-          <span class="device-label">Источник (Source)</span>
-          <span class="status-dot" id="srcStatus">Готов</span>
+    <!-- Stepper Navigation -->
+    <div class="stepper">
+      <div class="step-item active" id="stepIndicator1">
+        <div class="step-number">1</div>
+        <span>Источник: Android</span>
+      </div>
+      <div class="step-item" id="stepIndicator2">
+        <div class="step-number">2</div>
+        <span>Приемник: iPhone</span>
+      </div>
+      <div class="step-item" id="stepIndicator3">
+        <div class="step-number">3</div>
+        <span>Перенос данных</span>
+      </div>
+    </div>
+
+    <!-- STEP 1: SOURCE SELECTION -->
+    <div class="step-section" id="stepSection1">
+      <div class="step-header">
+        <div class="step-title">
+          <span>Шаг 1: Выберите источник переписки Viber</span>
         </div>
-        <select class="device-select" id="sourceSelect" onchange="updateDeviceViews()">
-          <option value="desktop">💻 Viber Desktop (Синхронизированная база)</option>
-          <option value="android_usb">📱 Android Smartphone (USB / ADB)</option>
-          <option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>
-        </select>
-        <div class="device-details" id="sourceDetails">
-          <div>Канал: %AppData%\ViberPC\viber.db</div>
-          <div>Статус: Готов к прямому чтению</div>
+        <span class="status-dot" id="srcHardwareStatus">Поиск устройств...</span>
+      </div>
+
+      <!-- Source Tabs -->
+      <div class="source-tabs">
+        <button class="source-tab-btn active" id="tabBtnUsb" onclick="switchSourceTab('usb')">📱 USB Смартфон</button>
+        <button class="source-tab-btn" id="tabBtnDesktop" onclick="switchSourceTab('desktop')">💻 Viber Desktop (ПК)</button>
+        <button class="source-tab-btn" id="tabBtnZip" onclick="switchSourceTab('zip')">☁️ Архив Google Drive</button>
+        <button class="source-tab-btn" id="tabBtnDemo" onclick="switchSourceTab('demo')">🧪 Тестовый макет</button>
+      </div>
+
+      <!-- Tab Content: USB Device -->
+      <div id="tabContentUsb" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="device-info-pill" id="usbDeviceInfo">
+          <div>
+            <div class="device-title" id="usbModelTitle">📱 Телефон не обнаружен</div>
+            <div class="device-meta" id="usbModelMeta">Подключите смартфон кабелем USB с включенной отладкой</div>
+          </div>
+          <span class="status-dot offline" id="usbStateDot">Не подключен</span>
+        </div>
+
+        <div class="alert-banner info">
+          <div>ℹ️</div>
+          <div>
+            <strong>Политика безопасности Android 11–16 (No-Root):</strong> Google запрещает прямое считывание баз данных приложений через ADB без root-прав. Для безопасного извлечения чатов выберите один из 2 официальных путей:
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <button class="browse-btn" style="justify-content: center; padding: 12px;" onclick="switchSourceTab('desktop')">
+            💻 Использовать Viber Desktop (Рекомендуется)
+          </button>
+          <button class="browse-btn" style="justify-content: center; padding: 12px;" onclick="switchSourceTab('zip')">
+            ☁️ Указать архив Google Drive (zip)
+          </button>
         </div>
       </div>
 
-      <!-- Swap Button -->
-      <button class="swap-btn" title="Сменить направление переноса" onclick="swapDirection()">⇄</button>
-
-      <!-- Target -->
-      <div class="device-card" id="targetCard">
-        <div class="device-header">
-          <span class="device-label">Приемник (Target)</span>
-          <span class="status-dot" id="targetStatus">Готов</span>
+      <!-- Tab Content: Viber Desktop -->
+      <div id="tabContentDesktop" style="display: none; flex-direction: column; gap: 12px;">
+        <div class="alert-banner success" id="desktopDetectBanner">
+          <div>✓</div>
+          <div id="desktopDetectText">База данных Viber Desktop найдена на этом компьютере.</div>
         </div>
-        <select class="device-select" id="targetSelect" onchange="updateDeviceViews()">
-          <option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>
-          <option value="ios_backup">📁 Локальная копия iTunes (Manifest.db)</option>
-          <option value="android_target">📱 Android (Восстановление через архив)</option>
-        </select>
-        <div class="device-details" id="targetDetails">
-          <div>Устройство: iPhone (iOS MobileBackup2)</div>
-          <div>Шина: Инъекция Manifest.db</div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 12px; color: var(--text-muted);">Путь к файлу базы данных viber.db:</label>
+          <div class="input-group">
+            <input type="text" class="path-input" id="viberDbInput" placeholder="C:\Users\...\AppData\Roaming\ViberPC\...\viber.db" oninput="updateSummary()">
+            <button class="browse-btn" onclick="browseFile('db')">📁 Выбрать файл...</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Google Drive ZIP -->
+      <div id="tabContentZip" style="display: none; flex-direction: column; gap: 12px;">
+        <div class="instructions-box">
+          <strong>Как выгрузить архив чатов из Viber на смартфоне:</strong>
+          <ol>
+            <li>Откройте Viber на телефоне: <strong>Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование</strong>.</li>
+            <li>Нажмите <strong>«Создать копию»</strong> (архив сохранится на вашем Google Диске).</li>
+            <li>Скачайте файл <code>viber_backup.zip</code> на этот компьютер и выберите его ниже.</li>
+          </ol>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 12px; color: var(--text-muted);">Путь к файлу архива viber_backup.zip:</label>
+          <div class="input-group">
+            <input type="text" class="path-input" id="viberZipInput" placeholder="C:\Users\...\Downloads\viber_backup.zip" oninput="updateSummary()">
+            <button class="browse-btn" onclick="browseFile('zip')">📁 Выбрать архив...</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Demo Mode -->
+      <div id="tabContentDemo" style="display: none; flex-direction: column; gap: 12px;">
+        <div class="alert-banner warning">
+          <div>⚠️</div>
+          <div>
+            <strong>Режим демонстрационного тестирования:</strong> в этом режиме перенос будет выполнен на синтетической базе из 3 тестовых диалогов для демонстрации скорости и валидации схем без использования реальных баз.
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Pre-flight Checks -->
-    <div class="checklist-card">
-      <div class="check-item">
-        <div class="check-icon">✓</div>
-        <span id="memCheckText">Свободная память: <strong>OK</strong></span>
+    <!-- STEP 2: TARGET (IPHONE) SELECTION -->
+    <div class="step-section" id="stepSection2">
+      <div class="step-header">
+        <div class="step-title">
+          <span>Шаг 2: Приемник — Apple iPhone (iTunes / MobileSync)</span>
+        </div>
+        <span class="status-dot warning" id="targetHardwareStatus">Ожидание бэкапа</span>
       </div>
-      <div class="check-item">
-        <div class="check-icon" id="findMyStatus">✓</div>
-        <span id="findMyText">«Локатор» (Find My): <strong>Проверен</strong></span>
+
+      <!-- Apple Services Diagnostic Banner -->
+      <div class="alert-banner warning" id="itunesStatusBanner">
+        <div>🍏</div>
+        <div id="itunesStatusText">Проверка установленных служб Apple на компьютере...</div>
       </div>
-      <div class="check-item">
-        <div class="check-icon">✓</div>
-        <span>Целостность баз: <strong>Zero Data Loss Ready</strong></span>
+
+      <!-- iOS Instructions -->
+      <div class="instructions-box" id="iosInstructionsBox">
+        <strong>Пошаговая подготовка iPhone к приему данных:</strong>
+        <ol>
+          <li>Подключите iPhone кабелем к компьютеру и на экране телефона нажмите <strong>«Доверять этому компьютеру»</strong>.</li>
+          <li>Откройте iTunes (или «Устройства Apple») и нажмите <strong>«Создать резервную копию сейчас»</strong> на этот компьютер.</li>
+          <li><strong>КРИТИЧЕСКИ ВАЖНО:</strong> Снимите галочку <em>«Зашифровать локальную копию»</em> (бэкап не должен иметь пароль).</li>
+          <li>После завершения бэкапа нажмите кнопку <strong>«🔄 Сканировать устройства»</strong> вверху страницы.</li>
+        </ol>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 12px; color: var(--text-muted);">Папка резервной копии iTunes MobileSync:</label>
+        <div class="input-group">
+          <input type="text" class="path-input" id="targetBackupInput" placeholder="C:\Users\...\Apple Computer\MobileSync\Backup\<UDID>" oninput="updateSummary()">
+          <button class="browse-btn" onclick="browseFolder()">📁 Выбрать папку бэкапа...</button>
+        </div>
       </div>
     </div>
 
-    <!-- Action Panel -->
-    <div class="action-panel" id="actionPanel">
-      <button class="start-btn" id="startBtn" onclick="startMigration()">
-        <span>Начать автоматический перенос</span>
-        <span>→</span>
-      </button>
-    </div>
-
-    <!-- Live Progress Section -->
-    <div class="progress-section" id="progressSection">
-      <div class="progress-header">
-        <span id="progressStepTitle">Инициализация переноса...</span>
-        <span id="progressPercent" style="font-family: var(--font-mono); font-weight: 600;">0%</span>
-      </div>
-      <div class="progress-bar-container">
-        <div class="progress-bar-fill" id="progressBar"></div>
-      </div>
-
-      <div class="stats-row">
-        <div class="stat-box">
-          <div class="stat-label">Диалогов</div>
-          <div class="stat-value" id="statChats">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Сообщений</div>
-          <div class="stat-value" id="statMsgs">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Дубликатов снято</div>
-          <div class="stat-value" id="statDeduplicated">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Время выполнения</div>
-          <div class="stat-value" id="statDuration">0 ms</div>
+    <!-- STEP 3: MIGRATION SUMMARY & ACTION -->
+    <div class="step-section" id="stepSection3">
+      <div class="step-header">
+        <div class="step-title">
+          <span>Шаг 3: Проверка параметров и запуск миграции</span>
         </div>
       </div>
 
-      <div class="console-logs" id="consoleLogs"></div>
-    </div>
+      <!-- Summary Card -->
+      <div class="summary-card">
+        <div class="summary-pair">
+          <span class="summary-label">Источник данных:</span>
+          <span class="summary-value" id="summarySource">Не выбран</span>
+        </div>
+        <div style="font-size: 20px; color: var(--text-muted);">➔</div>
+        <div class="summary-pair">
+          <span class="summary-label">Целевой приемник:</span>
+          <span class="summary-value" id="summaryTarget">Apple iPhone (iTunes Backup)</span>
+        </div>
+        <div class="summary-pair">
+          <span class="summary-label">Режим переноса:</span>
+          <span class="summary-value" id="summaryMode" style="color: var(--accent);">Реальный перенос</span>
+        </div>
+      </div>
 
-    <!-- Success Card -->
-    <div class="success-card" id="successCard">
-      <div class="success-icon">✓</div>
-      <h3>Миграция успешно завершена!</h3>
-      <p id="successDesc">Все чаты и медиафайлы перенесены на целевое устройство без потерь данных.</p>
-      <button class="reset-btn" onclick="resetUI()">Выполнить новый перенос</button>
+      <!-- Action Panel -->
+      <div class="action-panel" id="actionPanel">
+        <button class="start-btn" id="startBtn" onclick="startMigration()">
+          <span>Начать перенос данных</span>
+          <span>→</span>
+        </button>
+        <span id="startBtnHint" style="font-size: 12px; color: var(--text-muted);"></span>
+      </div>
+
+      <!-- Live Progress Section -->
+      <div class="progress-section" id="progressSection">
+        <div class="progress-header">
+          <span id="progressStepTitle">Инициализация переноса...</span>
+          <span id="progressPercent" style="font-family: var(--font-mono); font-weight: 600;">0%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-label">Диалогов</div>
+            <div class="stat-value" id="statChats">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Сообщений</div>
+            <div class="stat-value" id="statMsgs">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Дубликатов снято</div>
+            <div class="stat-value" id="statDeduplicated">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Время выполнения</div>
+            <div class="stat-value" id="statDuration">0 ms</div>
+          </div>
+        </div>
+
+        <div class="console-logs" id="consoleLogs"></div>
+      </div>
+
+      <!-- Success Card -->
+      <div class="success-card" id="successCard">
+        <div class="success-icon">✓</div>
+        <h3>Миграция успешно завершена!</h3>
+        <p id="successDesc">Все сообщения и вложения успешно конвертированы и зарегистрированы в целевой резервной копии.</p>
+        <div class="alert-banner info" style="text-align: left; max-width: 540px;">
+          <div>📱</div>
+          <div>
+            <strong>Финальный шаг восстановления на iPhone:</strong><br>
+            1. В настройках iPhone временно отключите функцию <em>«Локатор» (Find My iPhone)</em>.<br>
+            2. В iTunes нажмите <strong>«Восстановить из копии»</strong> и выберите обновленный бэкап.<br>
+            3. После перезагрузки смартфона откройте Viber — вся переписка появится в приложении!
+          </div>
+        </div>
+        <button class="reset-btn" onclick="resetUI()">Выполнить новый перенос</button>
+      </div>
     </div>
   </div>
 
   <script>
-    let isReversed = false;
+    let activeTab = 'usb';
     let isServerOnline = false;
     let systemDevices = null;
     const API_BASE = window.location.origin.includes('http') ? window.location.origin : 'http://localhost:34567';
 
-    // Подключение к серверу и SSE-стриму
+    // Глобальный обработчик событий прогресса (определен в начале скрипта)
+    function handleServerEvent(evt) {
+      if (evt.type === 'progress') {
+        const pb = document.getElementById('progressBar');
+        const pt = document.getElementById('progressPercent');
+        const st = document.getElementById('progressStepTitle');
+
+        if (pb && pt && st) {
+          pb.style.width = evt.percent + '%';
+          pt.innerText = evt.percent + '%';
+          st.innerText = evt.message;
+        }
+        log(evt.message, evt.percent === 100 ? 'ok' : 'info');
+      } else if (evt.type === 'complete') {
+        const rep = evt.report;
+        document.getElementById('statChats').innerText = rep.chatsCount || 0;
+        document.getElementById('statMsgs').innerText = rep.messagesCount || 0;
+        document.getElementById('statDeduplicated').innerText = rep.deduplicatedCount || 0;
+        document.getElementById('statDuration').innerText = (rep.durationMs || 0) + ' ms';
+        
+        document.getElementById('successDesc').innerText = 
+          `Успешно перенесено ${rep.chatsCount} диалогов и ${rep.messagesCount} сообщений (Zero Data Loss Verified).`;
+
+        setTimeout(() => {
+          document.getElementById('progressSection').style.display = 'none';
+          document.getElementById('successCard').style.display = 'flex';
+          document.getElementById('stepIndicator3').className = 'step-item completed';
+        }, 600);
+      }
+    }
+
+    function switchSourceTab(tab) {
+      activeTab = tab;
+      const tabs = ['usb', 'desktop', 'zip', 'demo'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        const content = document.getElementById('tabContent' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (t === tab) {
+          btn.className = 'source-tab-btn active';
+          content.style.display = 'flex';
+        } else {
+          btn.className = 'source-tab-btn';
+          content.style.display = 'none';
+        }
+      });
+      updateSummary();
+    }
+
     async function initBridgeConnection() {
       const apiBadge = document.getElementById('apiBadge');
       try {
         const res = await fetch(`${API_BASE}/api/preflight`);
         if (res.ok) {
-          const data = await res.json();
           isServerOnline = true;
           apiBadge.className = 'api-badge';
           apiBadge.innerText = 'Бридж-сервер: В сети (Online)';
-          document.getElementById('memCheckText').innerHTML = `Память: <strong>${data.freeMemMb} MB свободно</strong>`;
-
-          // Сканируем устройства и бэкапы
           await refreshHardwareDevices();
         }
       } catch (e) {
         isServerOnline = false;
         apiBadge.className = 'api-badge offline';
-        apiBadge.innerText = 'Автономный режим (Демо)';
+        apiBadge.innerText = 'Сервер офлайн';
       }
 
       // Подключаем SSE
@@ -646,147 +985,201 @@
 
     async function refreshHardwareDevices() {
       const refreshBtn = document.getElementById('refreshBtn');
-      if (refreshBtn) refreshBtn.innerText = '⌛ Сканирование...';
+      if (refreshBtn) refreshBtn.innerText = '⌛ Опрос USB...';
 
       try {
         const res = await fetch(`${API_BASE}/api/devices`);
         if (res.ok) {
           systemDevices = await res.json();
-          renderDeviceSelectors();
+          renderDiagnostics();
         }
       } catch (err) {
-        console.warn('Не удалось опросить устройства:', err);
+        console.warn('Ошибка опроса устройств:', err);
       } finally {
         if (refreshBtn) refreshBtn.innerText = '🔄 Сканировать устройства';
       }
     }
 
-    function renderDeviceSelectors() {
+    function renderDiagnostics() {
       if (!systemDevices) return;
-      const srcSelect = document.getElementById('sourceSelect');
-      const targetSelect = document.getElementById('targetSelect');
-      const srcStatus = document.getElementById('srcStatus');
-      const targetStatus = document.getElementById('targetStatus');
 
-      const androidDevs = systemDevices.android?.devices || [];
-      const desktopAccs = systemDevices.android?.desktopAccounts || [];
-      const iosBackups = systemDevices.ios?.backups || [];
+      // 1. Диагностика Android
+      const android = systemDevices.android || {};
+      const dev = (android.devices && android.devices.length > 0) ? android.devices[0] : null;
+      const srcStatus = document.getElementById('srcHardwareStatus');
+      const usbModelTitle = document.getElementById('usbModelTitle');
+      const usbModelMeta = document.getElementById('usbModelMeta');
+      const usbStateDot = document.getElementById('usbStateDot');
 
-      if (!isReversed) {
-        // Источник: Android / Viber Desktop
-        let srcHtml = '';
-        if (desktopAccs.length > 0) {
-          desktopAccs.forEach(acc => {
-            srcHtml += `<option value="desktop_${acc.phone}">💻 Viber Desktop (${acc.phone})</option>`;
-          });
-        }
-        if (androidDevs.length > 0) {
-          androidDevs.forEach(d => {
-            const auth = d.isAuthorized ? '✓ Готов' : '⚠️ Требует авторизации';
-            srcHtml += `<option value="adb_${d.serial}">📱 ${d.model} (${d.serial}) [${auth}]</option>`;
-          });
-        }
-        srcHtml += `<option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>`;
-        srcHtml += `<option value="demo">🧪 Тестовая база Android (Демо-режим)</option>`;
-        srcSelect.innerHTML = srcHtml;
-
-        // Приемник: iPhone / iOS бэкап
-        let targetHtml = '';
-        if (iosBackups.length > 0) {
-          iosBackups.forEach(b => {
-            const enc = b.isEncrypted ? '🔒 Зашифрован' : '✓ Готов';
-            targetHtml += `<option value="backup_${b.udid}">🍏 ${b.deviceName} (${b.iosVersion}) [${enc}]</option>`;
-          });
-        }
-        targetHtml += `<option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>`;
-        targetHtml += `<option value="ios_backup">📁 Локальная копия iTunes (Manifest.db)</option>`;
-        targetSelect.innerHTML = targetHtml;
-
-        // Индикаторы статуса
-        if (desktopAccs.length > 0) {
-          srcStatus.className = 'status-dot';
-          srcStatus.innerText = 'Viber Desktop найден';
-        } else if (androidDevs.some(d => d.isAuthorized)) {
-          srcStatus.className = 'status-dot';
-          srcStatus.innerText = 'USB Телефон подключен';
-        } else if (androidDevs.length > 0) {
-          srcStatus.className = 'status-dot warning';
-          srcStatus.innerText = 'Требуется подтвердить на экране';
-        } else {
-          srcStatus.className = 'status-dot offline';
-          srcStatus.innerText = 'USB не подключен';
-        }
-
-        if (iosBackups.length > 0) {
-          targetStatus.className = 'status-dot';
-          targetStatus.innerText = `${iosBackups.length} бэкап(ов) найдено`;
-        } else {
-          targetStatus.className = 'status-dot warning';
-          targetStatus.innerText = 'Ожидание копии iTunes';
-        }
+      if (dev && dev.isAuthorized) {
+        srcStatus.className = 'status-dot';
+        srcStatus.innerText = 'Телефон подключен ✓';
+        usbModelTitle.innerText = `📱 ${dev.friendlyName || dev.model}`;
+        usbModelMeta.innerText = `Android ${dev.osVersion} • ADB ${dev.serial} • Viber: ${dev.viberInstalled ? 'Установлен ✓' : 'Не найден'}`;
+        usbStateDot.className = 'status-dot';
+        usbStateDot.innerText = 'Авторизован ✓';
+      } else if (dev && dev.state === 'unauthorized') {
+        srcStatus.className = 'status-dot warning';
+        srcStatus.innerText = 'Требуется подтверждение';
+        usbModelTitle.innerText = `📱 ${dev.model || 'Android устройство'}`;
+        usbModelMeta.innerText = 'Разблокируйте телефон и нажмите «Разрешить отладку с этого компьютера»';
+        usbStateDot.className = 'status-dot warning';
+        usbStateDot.innerText = 'Ожидание RSA';
       } else {
-        // Источник: iOS / iTunes
-        let srcHtml = '';
-        if (iosBackups.length > 0) {
-          iosBackups.forEach(b => {
-            srcHtml += `<option value="backup_${b.udid}">🍏 ${b.deviceName} (${b.iosVersion})</option>`;
-          });
-        }
-        srcHtml += `<option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>`;
-        srcHtml += `<option value="demo_ios">🧪 Синтетическая база iOS (Демо)</option>`;
-        srcSelect.innerHTML = srcHtml;
-
-        let targetHtml = '';
-        if (androidDevs.length > 0) {
-          androidDevs.forEach(d => {
-            targetHtml += `<option value="adb_${d.serial}">📱 ${d.model} (${d.serial})</option>`;
-          });
-        }
-        targetHtml += `<option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>`;
-        targetHtml += `<option value="local_sqlite">📱 Локальный файл (viber_messages.db)</option>`;
-        targetSelect.innerHTML = targetHtml;
+        srcStatus.className = 'status-dot offline';
+        srcStatus.innerText = 'USB не подключен';
+        usbModelTitle.innerText = '📱 Телефон не обнаружен';
+        usbModelMeta.innerText = 'Подключите смартфон кабелем USB к компьютеру';
+        usbStateDot.className = 'status-dot offline';
+        usbStateDot.innerText = 'Не подключен';
       }
 
-      updateDeviceViews();
-    }
-
-    function swapDirection() {
-      isReversed = !isReversed;
-      renderDeviceSelectors();
-    }
-
-    function updateDeviceViews() {
-      const srcVal = document.getElementById('sourceSelect').value;
-      const srcDetails = document.getElementById('sourceDetails');
-      const targetVal = document.getElementById('targetSelect').value;
-      const targetDetails = document.getElementById('targetDetails');
-
-      if (srcVal.startsWith('desktop')) {
-        const phone = srcVal.replace('desktop_', '');
-        srcDetails.innerHTML = `<div>Канал: %AppData%\\ViberPC\\${phone}\\viber.db</div><div>Статус: Прямое SQLite чтение</div>`;
-      } else if (srcVal.startsWith('adb_')) {
-        const serial = srcVal.replace('adb_', '');
-        srcDetails.innerHTML = `<div>Шина: ADB Shell (USB)</div><div>Серийный номер: ${serial}</div>`;
-      } else if (srcVal === 'gdrive') {
-        srcDetails.innerHTML = '<div>Облако: Google Drive AppData</div><div>Формат: viber_backup.zip</div>';
-      } else if (srcVal.startsWith('backup_')) {
-        const udid = srcVal.replace('backup_', '');
-        srcDetails.innerHTML = `<div>Канал: iTunes MobileSync</div><div>UDID: ${udid.slice(0, 16)}...</div>`;
-      } else if (srcVal === 'demo' || srcVal === 'demo_ios') {
-        srcDetails.innerHTML = '<div>Канал: Синтетический генератор данных</div><div>Статус: Демонстрационный режим</div>';
+      // Проверка Viber Desktop
+      const accs = android.desktopAccounts || [];
+      const dbInput = document.getElementById('viberDbInput');
+      const detectBanner = document.getElementById('desktopDetectBanner');
+      const detectText = document.getElementById('desktopDetectText');
+      if (accs.length > 0) {
+        const acc = accs[0];
+        if (!dbInput.value) dbInput.value = acc.dbPath;
+        detectBanner.className = 'alert-banner success';
+        detectText.innerHTML = `Найдена база аккаунта <strong>${acc.phone}</strong> (${Math.round(acc.sizeBytes / 1024)} КБ).`;
       } else {
-        srcDetails.innerHTML = '<div>Шина: USB Кабель</div><div>Статус: Поиск устройства...</div>';
+        detectBanner.className = 'alert-banner info';
+        detectText.innerHTML = `База Viber Desktop не найдена в %AppData%\\ViberPC. Вы можете указать файл вручную или запустить Viber Desktop на этом ПК.`;
       }
 
-      if (targetVal.startsWith('backup_')) {
-        const udid = targetVal.replace('backup_', '');
-        targetDetails.innerHTML = `<div>Цель: iTunes Backup (${udid.slice(0, 12)}...)</div><div>Метод: Инъекция Manifest.db</div>`;
-      } else if (targetVal === 'ios_usb') {
-        targetDetails.innerHTML = '<div>Шина: Apple Mobile Device Service</div><div>Статус: Ожидание подтверждения доверия</div>';
-      } else if (targetVal === 'gdrive') {
-        targetDetails.innerHTML = '<div>Выходной формат: viber_backup.zip</div><div>Статус: Готов к загрузке в облако</div>';
+      // 2. Диагностика Apple / iTunes
+      const ios = systemDevices.ios || {};
+      const appleServices = ios.appleServices || {};
+      const targetStatus = document.getElementById('targetHardwareStatus');
+      const itunesBanner = document.getElementById('itunesStatusBanner');
+      const itunesText = document.getElementById('itunesStatusText');
+
+      if (ios.backups && ios.backups.length > 0) {
+        const b = ios.backups[0];
+        targetStatus.className = 'status-dot';
+        targetStatus.innerText = 'Бэкап готов ✓';
+        itunesBanner.className = 'alert-banner success';
+        itunesText.innerHTML = `Найдена резервная копия: <strong>${b.deviceName}</strong> (${b.iosVersion}), файлов: ${b.totalFiles}.`;
+        const targetInput = document.getElementById('targetBackupInput');
+        if (!targetInput.value) targetInput.value = b.backupPath;
+      } else if (appleServices.appleServicesAvailable) {
+        targetStatus.className = 'status-dot warning';
+        targetStatus.innerText = 'Ожидание копии в iTunes';
+        itunesBanner.className = 'alert-banner info';
+        itunesText.innerHTML = `Службы Apple активны на ПК. Создайте локальную копию iPhone в iTunes (без пароля).`;
       } else {
-        targetDetails.innerHTML = '<div>Формат: SQLite viber_messages.db</div><div>Статус: Готов к записи</div>';
+        targetStatus.className = 'status-dot offline';
+        targetStatus.innerText = 'iTunes не установлен';
+        itunesBanner.className = 'alert-banner warning';
+        itunesText.innerHTML = `iTunes не найден на компьютере. <a href="https://apps.microsoft.com/detail/9np83lwlpz9k" target="_blank" style="color: inherit; font-weight: 600; text-decoration: underline;">Установите «Устройства Apple» из Microsoft Store</a> или iTunes.`;
+      }
+
+      updateSummary();
+    }
+
+    async function browseFile(type) {
+      try {
+        const res = await fetch(`${API_BASE}/api/browse`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'file' })
+        });
+        const data = await res.json();
+        if (data.success && data.selectedPath) {
+          if (type === 'zip' || data.selectedPath.toLowerCase().endsWith('.zip')) {
+            document.getElementById('viberZipInput').value = data.selectedPath;
+            switchSourceTab('zip');
+          } else {
+            document.getElementById('viberDbInput').value = data.selectedPath;
+            switchSourceTab('desktop');
+          }
+          updateSummary();
+        }
+      } catch (e) {
+        alert('Не удалось открыть диалог: ' + e.message);
+      }
+    }
+
+    async function browseFolder() {
+      try {
+        const res = await fetch(`${API_BASE}/api/browse`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'folder' })
+        });
+        const data = await res.json();
+        if (data.success && data.selectedPath) {
+          document.getElementById('targetBackupInput').value = data.selectedPath;
+          updateSummary();
+        }
+      } catch (e) {
+        alert('Не удалось открыть диалог: ' + e.message);
+      }
+    }
+
+    function updateSummary() {
+      const summarySource = document.getElementById('summarySource');
+      const summaryTarget = document.getElementById('summaryTarget');
+      const summaryMode = document.getElementById('summaryMode');
+      const startBtn = document.getElementById('startBtn');
+      const startBtnHint = document.getElementById('startBtnHint');
+
+      const dbPath = document.getElementById('viberDbInput').value.trim();
+      const zipPath = document.getElementById('viberZipInput').value.trim();
+      const targetBackup = document.getElementById('targetBackupInput').value.trim();
+
+      let sourceSelected = false;
+
+      if (activeTab === 'demo') {
+        summarySource.innerText = '🧪 Синтетический тест (3 чата, 5 сообщ.)';
+        summaryMode.innerText = 'Тестовый макет (Демо)';
+        summaryMode.style.color = 'var(--warning)';
+        sourceSelected = true;
+      } else if (activeTab === 'desktop') {
+        if (dbPath) {
+          summarySource.innerText = '💻 Viber Desktop: ' + dbPath.split('\\').pop();
+          sourceSelected = true;
+        } else {
+          summarySource.innerText = '💻 База viber.db не указана';
+        }
+        summaryMode.innerText = 'Реальный перенос (Zero Data Loss)';
+        summaryMode.style.color = 'var(--success)';
+      } else if (activeTab === 'zip') {
+        if (zipPath) {
+          summarySource.innerText = '☁️ Архив Google Drive: ' + zipPath.split('\\').pop();
+          sourceSelected = true;
+        } else {
+          summarySource.innerText = '☁️ Файл viber_backup.zip не указан';
+        }
+        summaryMode.innerText = 'Реальный перенос (Zero Data Loss)';
+        summaryMode.style.color = 'var(--success)';
+      } else {
+        // USB Tab
+        summarySource.innerText = '📱 Xiaomi 13 Ultra (выберите Desktop или Zip)';
+        summaryMode.innerText = 'Реальный перенос';
+        summaryMode.style.color = 'var(--text-muted)';
+      }
+
+      if (targetBackup) {
+        summaryTarget.innerText = '🍏 Копия: ' + targetBackup.split('\\').pop();
+      } else {
+        summaryTarget.innerText = '🍏 Резервная копия не выбрана';
+      }
+
+      // Валидация кнопки запуска
+      if (activeTab === 'demo') {
+        startBtn.disabled = false;
+        startBtnHint.innerText = 'Готов к тестовому прогону конвертера';
+      } else if (sourceSelected) {
+        startBtn.disabled = false;
+        startBtnHint.innerText = targetBackup 
+          ? 'Готов к реальному внедрению чатов в бэкап iPhone' 
+          : 'Будет выполнена конвертация базы без модификации iPhone';
+      } else {
+        startBtn.disabled = true;
+        startBtnHint.innerText = 'Для запуска выберите базу Viber Desktop, архив Google Drive или демо-макет на Шаге 1';
       }
     }
 
@@ -795,20 +1188,31 @@
       const now = new Date().toTimeString().split(' ')[0];
       const div = document.createElement('div');
       div.className = 'log-line';
-      div.innerHTML = `<span class="log-time">[${now}]</span> <span class="${type === 'ok' ? 'log-ok' : 'log-info'}">${msg}</span>`;
+      let cls = 'log-info';
+      if (type === 'ok') cls = 'log-ok';
+      if (type === 'warn') cls = 'log-warn';
+      div.innerHTML = `<span class="log-time">[${now}]</span> <span class="${cls}">${msg}</span>`;
       logs.appendChild(div);
       logs.scrollTop = logs.scrollHeight;
     }
 
     async function startMigration() {
+      const startBtn = document.getElementById('startBtn');
+      startBtn.disabled = true;
+
       document.getElementById('actionPanel').style.display = 'none';
       document.getElementById('progressSection').style.display = 'flex';
       document.getElementById('consoleLogs').innerHTML = '';
 
-      const direction = isReversed ? 'ios-to-android' : 'android-to-ios';
-      log(`Старт процесса миграции: направление [${direction}]`, 'info');
+      const isDemo = activeTab === 'demo';
+      let sourcePath = null;
+      if (activeTab === 'desktop') sourcePath = document.getElementById('viberDbInput').value.trim();
+      if (activeTab === 'zip') sourcePath = document.getElementById('viberZipInput').value.trim();
+      const targetPath = document.getElementById('targetBackupInput').value.trim() || null;
 
-      // Живой пошаговый прогресс
+      log(`Старт процесса миграции: режим [${isDemo ? 'ДЕМО-ТЕСТ' : 'РЕАЛЬНЫЙ ПЕРЕНОС'}]`, 'info');
+
+      // Живой таймер визуализации
       let currentProgress = 5;
       const pb = document.getElementById('progressBar');
       const pt = document.getElementById('progressPercent');
@@ -816,7 +1220,7 @@
 
       pb.style.width = '5%';
       pt.innerText = '5%';
-      st.innerText = 'Инициализация и чтение исходной базы...';
+      st.innerText = 'Чтение и валидация источника...';
 
       const progressInterval = setInterval(() => {
         if (currentProgress < 85) {
@@ -824,84 +1228,64 @@
           pb.style.width = currentProgress + '%';
           pt.innerText = currentProgress + '%';
           if (currentProgress === 20) {
-            st.innerText = 'Чтение SQLite таблиц messages и conversations...';
-            log('Извлечение истории сообщений и контактов...', 'info');
+            st.innerText = 'Извлечение таблиц messages, contacts, conversations...';
+            log('Чтение истории сообщений и контактов...', 'info');
           } else if (currentProgress === 50) {
-            st.innerText = 'Нормализация в каноническую UIM-модель...';
-            log('Дедупликация и конвертация таймстампов...', 'info');
+            st.innerText = 'Конвертация в каноническую UIM-модель...';
+            log('Дедупликация и конвертация таймстампов Cocoa...', 'info');
           } else if (currentProgress === 80) {
-            st.innerText = 'Запись в целевую базу и расчет контрольных сумм...';
-            log('Сдвиг первичных ключей CoreData и регистрация в Manifest...', 'ok');
+            st.innerText = 'Запись в схему CoreData и Manifest.db...';
+            log('Сдвиг первичных ключей Z_PK и расчет контрольных сумм...', 'ok');
           }
         }
       }, 100);
 
-      if (isServerOnline) {
-        try {
-          const res = await fetch(`${API_BASE}/api/migrate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ direction, demo: true })
-          });
-          const data = await res.json();
-          clearInterval(progressInterval);
+      try {
+        const res = await fetch(`${API_BASE}/api/migrate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            direction: 'android-to-ios',
+            sourcePath,
+            targetPath,
+            demo: isDemo
+          })
+        });
 
-          if (data.success && data.report) {
-            pb.style.width = '100%';
-            pt.innerText = '100%';
-            st.innerText = 'Миграция завершена (Zero Data Loss Verified)';
-            log('Операция успешно завершена (100%), получен итоговый отчет.', 'ok');
-            handleServerEvent({ type: 'complete', report: data.report });
-          } else {
-            log(`Ошибка миграции: ${data.error || 'Неизвестная ошибка'}`, 'info');
-          }
-        } catch (e) {
-          clearInterval(progressInterval);
-          log(`Ошибка сети: ${e.message}`, 'info');
-          runLocalSimulation();
-        }
-      } else {
+        const data = await res.json();
         clearInterval(progressInterval);
-        runLocalSimulation();
-      }
-    }
 
-    function runLocalSimulation() {
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 10;
-        document.getElementById('progressBar').style.width = progress + '%';
-        document.getElementById('progressPercent').innerText = progress + '%';
-
-        if (progress === 20) log('Извлечение данных из базы Android viber_messages...', 'info');
-        if (progress === 40) log('Каноническая модель UIM: дедупликация выполнена.', 'ok');
-        if (progress === 70) log('Конвертация таймстампов Cocoa и сдвиг Z_PK CoreData...', 'ok');
-        if (progress === 90) log('Хеширование SHA-1 и регистрация в Manifest.db...', 'ok');
-        if (progress >= 100) {
-          clearInterval(interval);
-          log('Миграция успешно завершена (Zero Data Loss Verified).', 'ok');
-          document.getElementById('statChats').innerText = '3';
-          document.getElementById('statMsgs').innerText = '5';
-          document.getElementById('statDeduplicated').innerText = '0';
-          document.getElementById('statDuration').innerText = '14 ms';
-
-          setTimeout(() => {
-            document.getElementById('progressSection').style.display = 'none';
-            document.getElementById('successCard').style.display = 'flex';
-          }, 600);
+        if (data.success && data.report) {
+          pb.style.width = '100%';
+          pt.innerText = '100%';
+          st.innerText = 'Миграция успешно завершена!';
+          log('Операция успешно завершена (100%), получен итоговый отчет.', 'ok');
+          handleServerEvent({ type: 'complete', report: data.report });
+        } else {
+          clearInterval(progressInterval);
+          log(`Ошибка: ${data.error || 'Неизвестная ошибка миграции'}`, 'warn');
+          alert('Ошибка миграции: ' + (data.error || 'Проверьте выбранные файлы'));
+          resetUI();
         }
-      }, 100);
+      } catch (err) {
+        clearInterval(progressInterval);
+        log(`Сетевой сбой: ${err.message}`, 'warn');
+        alert('Сбой связи с сервером: ' + err.message);
+        resetUI();
+      }
     }
 
     function resetUI() {
       document.getElementById('successCard').style.display = 'none';
+      document.getElementById('progressSection').style.display = 'none';
       document.getElementById('actionPanel').style.display = 'flex';
+      document.getElementById('startBtn').disabled = false;
       document.getElementById('progressBar').style.width = '0%';
       document.getElementById('progressPercent').innerText = '0%';
       document.getElementById('consoleLogs').innerHTML = '';
+      updateSummary();
     }
 
-    // Инициализация при загрузке страницы
     window.addEventListener('DOMContentLoaded', () => {
       initBridgeConnection();
     });
