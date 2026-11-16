@@ -15,7 +15,7 @@
 ## Пользовательский интерфейс (Minimalist UI)
 
 Прототип минималистичного одноэкранного интерфейса расположен в файле:
-[src/renderer/index.html](file:///C:/Users/mythi/.gemini/antigravity/scratch/viber-transfer-pc/src/renderer/index.html) (запускается в любом браузере или в Electron).
+[src/renderer/index.html](file:///C:/Users/mythi/OneDrive/Desktop/YYY/viber-transfer-pc/src/renderer/index.html) (запускается через `Open_UI.bat` или в любом браузере).
 
 ## Структура репозитория
 
@@ -26,18 +26,21 @@
 │   ├── 1.0.2.md           # Архитектурная критика и аудит рисков (FMEA)
 │   ├── 1.0.3.md           # Эталонный план и матрица TDD
 │   ├── 1.0.4.md           # Каталог GitHub-решений и минималистичный UI
-│   └── 1.0.5.md           # Слой 1 (Time/Hash) и Слой 2 (UIM Contracts/Validator) [12/12 тестов]
+│   ├── 1.0.5.md           # Слой 1 (Time/Hash) и Слой 2 (UIM Contracts/Validator)
+│   └── 1.0.6.md           # Слой 3: Адаптер Android SQLite (100% Round-Trip Fidelity) [16/16 тестов]
 ├── fixtures/              # Эталонные схемы баз данных SQLite из открытых источников
 │   └── schemas/           # DDL схемы: Android viber_messages, iOS Chat.data, Manifest.db
 ├── src/
 │   ├── engine/            # Ядро конвертации
 │   │   ├── foundation/    # TimeEngine (Unix<->Cocoa) и HashService (SHA-1/SHA-256)
-│   │   └── uim/           # UIM Contracts и UIM Validator
+│   │   ├── uim/           # UIM Contracts и UIM Validator
+│   │   └── adapters/      # Адаптер Android SQLite (чтение/запись viber_messages.db)
 │   ├── devices/           # Драйверы взаимодействия с Android (ADB) и iOS (usbmuxd)
 │   ├── renderer/          # Минималистичный графический интерфейс (index.html)
 │   └── shared/            # Общие типы и контракты данных
 └── tests/                 # Модульные и интеграционные тесты (node:test)
-    └── foundation.test.js # Тесты фундамента ядра и валидатора (100% pass)
+    ├── foundation.test.js # Тесты фундамента ядра и валидатора
+    └── android-adapter.test.js # Тесты импорта, экспорта и round-trip Android
 ```
 
 ## Регламент версионирования
