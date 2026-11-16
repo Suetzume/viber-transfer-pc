@@ -1,0 +1,18 @@
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
+Thumbs.db
+
+# Private device dumps and test credentials
+*.sqlite
+*.data
+*.db
+*.ab
+*.zip
+*.tar
+*.bak
+test_dumps/
+temp/
+.viber-bridge/
