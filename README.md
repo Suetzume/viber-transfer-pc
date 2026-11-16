@@ -12,10 +12,11 @@
 
 Подробный финальный инженерный план: см. [Генеральный план архитектуры (v1.0.4-FINAL)](file:///C:/Users/mythi/.gemini/antigravity/brain/2fe6312d-3320-486f-bc41-9f368ef4600e/master_plan.md).
 
-## Пользовательский интерфейс (Minimalist UI)
+## Пользовательский интерфейс и утилиты запуска
 
-Прототип минималистичного одноэкранного интерфейса расположен в файле:
-[src/renderer/index.html](file:///C:/Users/mythi/OneDrive/Desktop/YYY/viber-transfer-pc/src/renderer/index.html) (запускается через `Open_UI.bat` или в любом браузере).
+* **Графический интерфейс:** [src/renderer/index.html](file:///C:/Users/mythi/OneDrive/Desktop/YYY/viber-transfer-pc/src/renderer/index.html) (запускается через `Open_UI.bat`).
+* **Консольный запуск (CLI):** `Run_CLI_Demo.bat` или `node src/cli/index.js --help`.
+* **Запуск тестов:** `Run_Tests.bat` (29 тестов, 100% pass).
 
 ## Структура репозитория
 
@@ -29,7 +30,8 @@
 │   ├── 1.0.5.md           # Слой 1 (Time/Hash) и Слой 2 (UIM Contracts/Validator)
 │   ├── 1.0.6.md           # Слой 3: Адаптер Android SQLite (100% Round-Trip Fidelity)
 │   ├── 1.0.7.md           # Слой 3: Адаптер iOS CoreData SQLite и KeyRebalancer
-│   └── 1.0.8.md           # Слой 4: Manifest.db Builder и ZipHandler [25/25 тестов]
+│   ├── 1.0.8.md           # Слой 4: Manifest.db Builder и ZipHandler
+│   └── 1.1.0.md           # ГЛОБАЛЬНЫЙ РЕЛИЗ: Сквозной MigrationEngine и CLI [29/29 тестов]
 ├── fixtures/              # Эталонные схемы баз данных SQLite из открытых источников
 │   └── schemas/           # DDL схемы: Android viber_messages, iOS Chat.data, Manifest.db
 ├── src/
@@ -38,7 +40,9 @@
 │   │   ├── uim/           # UIM Contracts и UIM Validator
 │   │   ├── adapters/      # Адаптеры Android и iOS + KeyRebalancer (сдвиг Z_PK)
 │   │   ├── manifest/      # ManifestBuilder (таблица Files + генератор bplist00)
-│   │   └── backup/        # ZipHandler (упаковка viber_backup.zip для Google Drive)
+│   │   ├── backup/        # ZipHandler (упаковка viber_backup.zip для Google Drive)
+│   │   └── pipeline/      # MigrationEngine (сквозные конвейеры миграции)
+│   ├── cli/               # Консольная утилита CLI (index.js)
 │   ├── devices/           # Драйверы взаимодействия с Android (ADB) и iOS (usbmuxd)
 │   ├── renderer/          # Минималистичный графический интерфейс (index.html)
 │   └── shared/            # Общие типы и контракты данных
@@ -46,7 +50,8 @@
     ├── foundation.test.js       # Тесты фундамента ядра и валидатора
     ├── android-adapter.test.js  # Тесты импорта, экспорта и round-trip Android
     ├── ios-adapter.test.js      # Тесты импорта, экспорта, KeyRebalancer и round-trip iOS
-    └── manifest-builder.test.js # Тесты упаковщика Manifest.db, bplist00 и ZipHandler
+    ├── manifest-builder.test.js # Тесты упаковщика Manifest.db, bplist00 и ZipHandler
+    └── migration-engine.test.js # Сквозные тесты миграции полного цикла (Zero Data Loss)
 ```
 
 ## Регламент версионирования
