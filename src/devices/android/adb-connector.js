@@ -2,15 +2,16 @@
  * ADB Connector: Подсистема обнаружения и взаимодействия с Android-устройствами по USB (ADB).
  * 
  * Включает:
- * - Поиск исполняемого файла adb (Android SDK, PATH, стандартные каталоги Windows)
- * - Парсинг вывода `adb devices -l` с определением статуса, модели, серийного номера
- * - Опрос параметров подключенного устройства (версия Android, наличие com.viber.voip)
+ * - Поиск исполняемого файла adb (встроенный bin/platform-tools, Android SDK, PATH, каталоги Downloads)
+ * - Сканирование физических USB-подключений Windows PnP (определение подключенного телефона даже без отладки)
+ * - Парсинг вывода `adb devices -l` с определением статуса (device, unauthorized, offline), модели, версии OS
+ * - Опрос параметров подключенного устройства (наличие пакета com.viber.voip, версия Android)
  * - Многоуровневую стратегию обнаружения источников данных (Tier 1: Desktop, Tier 2: Zip, Tier 3: ADB)
  */
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { execSync, execFile } = require('node:child_process');
+const { execSync } = require('node:child_process');
 const { detectLocalViberDesktop } = require('../../engine/pipeline/migration-engine');
 
 /**
@@ -66,7 +67,23 @@ function parseAdbDevicesOutput(output) {
 }
 
 /**
- * Ищет исполняемый файл adb на локальной машине
+ * Определяет наличие физически подключенных телефонов в Windows через PnP (даже если отладка выключена)
+ * @returns {Array<string>} список дружественных имен устройств (напр. ["Xiaomi 13 Ultra"])
+ */
+function detectWindowsPnpPhones() {
+  if (process.platform !== 'win32') return [];
+  try {
+    const cmd = 'powershell -NoProfile -Command "Get-PnpDevice -Class WPD -Status OK -ErrorAction SilentlyContinue | ForEach-Object { $_.FriendlyName }"';
+    const out = execSync(cmd, { encoding: 'utf8', timeout: 2000, stdio: ['pipe', 'pipe', 'ignore'] }).trim();
+    if (!out) return [];
+    return out.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  } catch (_) {
+    return [];
+  }
+}
+
+/**
+ * Ищет исполняемый файл adb на локальной машине с широким охватом
  * @param {string} [customPath]
  * @returns {string|null}
  */
@@ -77,14 +94,27 @@ function findAdbExecutable(customPath = null) {
 
   const candidates = [];
 
-  // Переменные окружения Android SDK
+  // 1. Встроенный переносной bin/platform-tools внутри проекта
+  candidates.push(path.resolve(__dirname, '../../../bin/platform-tools/adb.exe'));
+  candidates.push(path.join(process.cwd(), 'bin/platform-tools/adb.exe'));
+  candidates.push(path.join(path.dirname(process.execPath), 'bin/platform-tools/adb.exe'));
+
+  // 2. Каталоги пользователя Downloads (PAPKA, platform-tools, Telegram Desktop)
+  const userProfile = process.env.USERPROFILE;
+  if (userProfile) {
+    candidates.push(path.join(userProfile, 'Downloads', 'PAPKA', 'adb.exe'));
+    candidates.push(path.join(userProfile, 'Downloads', 'platform-tools', 'adb.exe'));
+    candidates.push(path.join(userProfile, 'Downloads', 'Telegram Desktop', 'PixelBatteryHealth', 'PixelBatteryHealth', 'adb.exe'));
+  }
+
+  // 3. Переменные окружения Android SDK
   const androidHome = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
   if (androidHome) {
     candidates.push(path.join(androidHome, 'platform-tools', 'adb.exe'));
     candidates.push(path.join(androidHome, 'platform-tools', 'adb'));
   }
 
-  // Стандартные пути Windows
+  // 4. Стандартные пути Windows Android Studio
   const localAppData = process.env.LOCALAPPDATA;
   if (localAppData) {
     candidates.push(path.join(localAppData, 'Android', 'Sdk', 'platform-tools', 'adb.exe'));
@@ -101,7 +131,7 @@ function findAdbExecutable(customPath = null) {
     }
   }
 
-  // Проверка adb в системном PATH
+  // 5. Проверка adb в системном PATH
   try {
     const checkCmd = process.platform === 'win32' ? 'where adb' : 'which adb';
     const found = execSync(checkCmd, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'], timeout: 1500 }).trim();
@@ -116,20 +146,28 @@ function findAdbExecutable(customPath = null) {
 }
 
 /**
- * Сканирует систему на наличие подключенных устройств Android
+ * Сканирует систему на наличие подключенных устройств Android с глубокой диагностикой
  * @param {object} [options]
  * @param {string} [options.adbPath]
  * @param {number} [options.timeoutMs]
- * @returns {object} { available: boolean, adbPath: string|null, devices: Array<object>, error?: string }
+ * @returns {object} { available: boolean, adbPath: string|null, pnpPhones: Array<string>, devices: Array<object>, statusSummary: string, error?: string }
  */
 function scanAndroidDevices(options = {}) {
   const adbExecutable = findAdbExecutable(options.adbPath);
+
   if (!adbExecutable) {
+    const pnpPhones = detectWindowsPnpPhones();
     return {
       available: false,
       adbPath: null,
+      pnpPhones,
       devices: [],
-      error: 'Исполняемый файл adb не найден. Установите Android SDK или добавьте adb в PATH.'
+      statusSummary: pnpPhones.length > 0 
+        ? `Телефон (${pnpPhones.join(', ')}) подключен к ПК, но ADB-служба не настроена`
+        : 'Телефон по USB не обнаружен',
+      help: pnpPhones.length > 0 
+        ? `Windows видит телефон ${pnpPhones.join(', ')} по кабелю, но исполняемый файл ADB не найден в системе. Добавьте adb в bin/platform-tools.`
+        : 'Подключите телефон USB-кабелем к компьютеру и включите режим «Отладка по USB» в настройках разработчика.'
     };
   }
 
@@ -142,10 +180,12 @@ function scanAndroidDevices(options = {}) {
     });
 
     const devices = parseAdbDevicesOutput(output);
+    const pnpPhones = devices.length === 0 ? detectWindowsPnpPhones() : [];
 
-    // Дополнительный опрос параметров для авторизованных устройств
+    // Дополнительный опрос параметров для обнаруженных устройств
     for (const dev of devices) {
       if (dev.isAuthorized) {
+        // Проверка наличия пакета Viber
         try {
           const viberCheck = execSync(`"${adbExecutable}" -s ${dev.serial} shell pm path com.viber.voip`, {
             encoding: 'utf8',
@@ -157,6 +197,7 @@ function scanAndroidDevices(options = {}) {
           dev.viberInstalled = false;
         }
 
+        // Версия Android
         try {
           const osVersion = execSync(`"${adbExecutable}" -s ${dev.serial} shell getprop ro.build.version.release`, {
             encoding: 'utf8',
@@ -167,23 +208,61 @@ function scanAndroidDevices(options = {}) {
         } catch (_) {
           dev.osVersion = 'unknown';
         }
-      } else {
-        dev.viberInstalled = null;
-        dev.osVersion = null;
+
+        // Человекочитаемое имя производителя и модели
+        try {
+          const mfg = execSync(`"${adbExecutable}" -s ${dev.serial} shell getprop ro.product.manufacturer`, {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'ignore'],
+            timeout: 1500
+          }).trim();
+          const prodModel = execSync(`"${adbExecutable}" -s ${dev.serial} shell getprop ro.product.model`, {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'ignore'],
+            timeout: 1500
+          }).trim();
+          if (mfg && prodModel) {
+            dev.friendlyName = `${mfg.toUpperCase()} ${prodModel}`;
+          }
+        } catch (_) {}
+
+        dev.statusDescription = `Готов к миграции (Android ${dev.osVersion}, Viber: ${dev.viberInstalled ? 'Установлен ✓' : 'Не найден'})`;
+      } else if (dev.state === 'unauthorized') {
+        dev.friendlyName = dev.model || dev.serial;
+        dev.statusDescription = 'Требуется подтверждение на экране смартфона';
+        dev.help = 'Разблокируйте телефон и нажмите «Разрешить отладку с этого компьютера» во всплывающем окне.';
+      } else if (dev.state === 'offline') {
+        dev.friendlyName = dev.model || dev.serial;
+        dev.statusDescription = 'Устройство находится в режиме Offline';
+        dev.help = 'Переподключите кабель USB или перезагрузите телефон.';
       }
+    }
+
+    let statusSummary = '';
+    if (devices.length > 0) {
+      const authorizedCount = devices.filter(d => d.isAuthorized).length;
+      statusSummary = `${authorizedCount} из ${devices.length} устройств(а) готово к передаче`;
+    } else if (pnpPhones.length > 0) {
+      statusSummary = `Телефон ${pnpPhones.join(', ')} подключен по USB, но отладка по USB выключена!`;
+    } else {
+      statusSummary = 'Устройства USB не подключены';
     }
 
     return {
       available: true,
       adbPath: adbExecutable,
-      devices
+      pnpPhones,
+      devices,
+      statusSummary
     };
   } catch (err) {
     return {
       available: false,
       adbPath: adbExecutable,
+      pnpPhones,
       devices: [],
-      error: err.message
+      error: err.message,
+      statusSummary: 'Ошибка запуска демона ADB'
     };
   }
 }
@@ -231,10 +310,10 @@ function detectAndroidDataSources(options = {}) {
   let recommendedStrategy = 'desktop';
   if (desktopAccounts.length > 0) {
     recommendedStrategy = 'desktop'; // Tier 1: прямой доступ к SQLite
-  } else if (foundArchives.length > 0) {
-    recommendedStrategy = 'backup_zip'; // Tier 2: архив Google Drive
   } else if (adbScan.devices.some(d => d.isAuthorized)) {
     recommendedStrategy = 'adb_device'; // Tier 3: USB подключение
+  } else if (foundArchives.length > 0) {
+    recommendedStrategy = 'backup_zip'; // Tier 2: архив Google Drive
   } else {
     recommendedStrategy = 'manual_import';
   }
@@ -255,6 +334,7 @@ function detectAndroidDataSources(options = {}) {
 
 module.exports = {
   parseAdbDevicesOutput,
+  detectWindowsPnpPhones,
   findAdbExecutable,
   scanAndroidDevices,
   detectAndroidDataSources

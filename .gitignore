@@ -2,6 +2,7 @@ node_modules/
 dist/
 build/
 *.exe
+!bin/platform-tools/*.exe
 *.log
 .DS_Store
 Thumbs.db

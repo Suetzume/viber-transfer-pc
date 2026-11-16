@@ -317,12 +317,30 @@ function validateBackupForRestore(backupDir) {
 }
 
 /**
+ * Определяет подключенные устройства Apple (iPhone/iPad) через Windows PnP
+ * @returns {Array<string>} список найденных устройств
+ */
+function detectWindowsPnpAppleDevices() {
+  if (process.platform !== 'win32') return [];
+  try {
+    const { execSync } = require('node:child_process');
+    const cmd = 'powershell -NoProfile -Command "Get-PnpDevice -Status OK -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -match \'Apple|iPhone|iPad\' } | ForEach-Object { $_.FriendlyName }"';
+    const out = execSync(cmd, { encoding: 'utf8', timeout: 2000, stdio: ['pipe', 'pipe', 'ignore'] }).trim();
+    if (!out) return [];
+    return out.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  } catch (_) {
+    return [];
+  }
+}
+
+/**
  * Проверяет наличие установленных служб Apple на хост-компьютере
- * @returns {object} { appleMobileDeviceInstalled: boolean, itunesInstalled: boolean }
+ * @returns {object} { appleMobileDeviceInstalled, itunesInstalled, appleDevicesAppInstalled, appleServicesAvailable, iphoneConnectedViaUsb, help, downloadUrl }
  */
 function detectAppleServices() {
   const programFiles = process.env['ProgramFiles'] || 'C:\\Program Files';
   const programFilesX86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
+  const localAppData = process.env['LOCALAPPDATA'] || '';
 
   const amdPaths = [
     path.join(programFiles, 'Common Files', 'Apple', 'Mobile Device Support', 'AppleMobileDeviceService.exe'),
@@ -334,12 +352,37 @@ function detectAppleServices() {
     path.join(programFilesX86, 'iTunes', 'iTunes.exe')
   ];
 
+  const appleDevicesAppPaths = [
+    path.join(localAppData, 'Microsoft', 'WindowsApps', 'AppleDevices.exe')
+  ];
+
   const appleMobileDeviceInstalled = amdPaths.some(p => fs.existsSync(p));
   const itunesInstalled = itunesPaths.some(p => fs.existsSync(p));
+  const appleDevicesAppInstalled = appleDevicesAppPaths.some(p => fs.existsSync(p));
+
+  const pnpAppleDevices = detectWindowsPnpAppleDevices();
+  const iphoneConnectedViaUsb = pnpAppleDevices.length > 0;
+
+  const appleServicesAvailable = itunesInstalled || appleDevicesAppInstalled || appleMobileDeviceInstalled;
+
+  let help = '';
+  if (!appleServicesAvailable) {
+    help = 'iTunes или приложение «Устройства Apple» не установлены на этом компьютере. Они необходимы для создания локальной копии iPhone.';
+  } else if (!iphoneConnectedViaUsb) {
+    help = 'Подключите iPhone кабелем Lightning/Type-C к компьютеру и выберите «Доверять этому компьютеру».';
+  } else {
+    help = 'iPhone подключен. Создайте резервную копию в iTunes (БЕЗ шифрования), чтобы программа смогла внедрить чаты.';
+  }
 
   return {
     appleMobileDeviceInstalled,
-    itunesInstalled
+    itunesInstalled,
+    appleDevicesAppInstalled,
+    appleServicesAvailable,
+    iphoneConnectedViaUsb,
+    pnpAppleDevices,
+    help,
+    downloadUrl: 'https://apps.microsoft.com/detail/9np83lwlpz9k'
   };
 }
 
@@ -349,5 +392,6 @@ module.exports = {
   inspectIOSBackup,
   scanIOSBackups,
   validateBackupForRestore,
-  detectAppleServices
+  detectAppleServices,
+  detectWindowsPnpAppleDevices
 };
