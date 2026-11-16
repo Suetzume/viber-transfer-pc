@@ -51,6 +51,16 @@ describe('Layer 6: Desktop Bridge Server & Web GUI Integration (v1.2.0)', () => 
     assert.ok(Array.isArray(res.data.accounts));
   });
 
+  it('handles /api/devices and returns full Android/iOS hardware status', async () => {
+    const res = await makeRequest('/api/devices');
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.data.success, true);
+    assert.ok(res.data.android);
+    assert.ok(res.data.ios);
+    assert.ok(Array.isArray(res.data.android.devices));
+    assert.ok(Array.isArray(res.data.ios.backups));
+  });
+
   it('triggers real end-to-end migration via POST /api/migrate and returns valid report', async () => {
     const res = await makeRequest('/api/migrate', 'POST', {
       direction: 'android-to-ios',

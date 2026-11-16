@@ -17,6 +17,11 @@ const {
   migrateIOSToAndroid
 } = require('../engine/pipeline/migration-engine');
 
+const {
+  scanAllDevicesAndBackups,
+  validateBackupForRestore
+} = require('../devices');
+
 const PORT = process.env.PORT || 34567;
 const RENDERER_DIR = path.join(__dirname, '../renderer');
 const FIXTURES_DIR = path.join(__dirname, '../../fixtures/schemas');
@@ -101,6 +106,33 @@ const server = http.createServer((req, res) => {
     const detected = detectLocalViberDesktop();
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ success: true, accounts: detected }));
+    return;
+  }
+
+  // API: Комплексное сканирование устройств и резервных копий
+  if (url.pathname === '/api/devices' && req.method === 'GET') {
+    const devicesStatus = scanAllDevicesAndBackups();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, ...devicesStatus }));
+    return;
+  }
+
+  // API: Валидация бэкапа перед восстановлением
+  if (url.pathname === '/api/validate-backup' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      let params = {};
+      try { params = JSON.parse(body || '{}'); } catch (_) {}
+      if (!params.backupPath) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Параметр backupPath обязателен' }));
+        return;
+      }
+      const val = validateBackupForRestore(params.backupPath);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, validation: val }));
+    });
     return;
   }
 

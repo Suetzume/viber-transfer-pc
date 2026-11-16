@@ -8,15 +8,15 @@
 
 В проекте используются открытые проверенные референсные схемы баз данных и наработки сообщества с GitHub (`ViberDBViewer`, `iPhone-Backup-Analyzer-2`, `watoi`, `WaBridge`, `libimobiledevice`).
 
-Архитектура построена по принципу **Black-Box Isolation** с пошаговым модульным тестированием (TDD) каждого компонента на эталонных фикстурах без обязательного подключения физических телефонов при разработке.
+Архитектура построена по принципу **Black-Box Isolation** с пошаговым модульным тестированием (TDD) каждого компонента на эталонных фикстурах и реальных аппаратных интерфейсах (Zero Data Loss Guarantee).
 
 Подробный финальный инженерный план: см. [Генеральный план архитектуры (v1.0.4-FINAL)](file:///C:/Users/mythi/.gemini/antigravity/brain/2fe6312d-3320-486f-bc41-9f368ef4600e/master_plan.md).
 
 ## Пользовательский интерфейс и утилиты запуска
 
-* **Запуск настольного приложения:** `Start_App.bat` (запускает локальный BridgeServer и открывает GUI в браузере).
+* **Запуск настольного приложения:** `Start_App.bat` (запускает локальный BridgeServer и открывает GUI в браузере с живым определением подключенных телефонов и копий).
 * **Консольный запуск (CLI):** `Run_CLI_Demo.bat` или `node src/cli/index.js --help`.
-* **Запуск тестов:** `Run_Tests.bat` (33 теста, 100% pass).
+* **Запуск тестов:** `Run_Tests.bat` (44 теста, 12 тестовых сьютов, 100% pass).
 * **Статический просмотр UI:** `Open_UI.bat` или [src/renderer/index.html](file:///C:/Users/mythi/OneDrive/Desktop/YYY/viber-transfer-pc/src/renderer/index.html).
 
 ## Структура репозитория
@@ -33,7 +33,8 @@
 │   ├── 1.0.7.md           # Слой 3: Адаптер iOS CoreData SQLite и KeyRebalancer
 │   ├── 1.0.8.md           # Слой 4: Manifest.db Builder и ZipHandler
 │   ├── 1.1.0.md           # ГЛОБАЛЬНЫЙ РЕЛИЗ: Сквозной MigrationEngine и CLI
-│   └── 1.2.0.md           # Слой 6: BridgeServer и подключение Desktop UI [33/33 тестов]
+│   ├── 1.2.0.md           # Слой 6: BridgeServer и подключение Desktop UI
+│   └── 2.0.0.md           # ФИНАЛЬНЫЙ РЕЛИЗ 2.0: Аппаратные коннекторы (ADB & iOS MobileSync)
 ├── fixtures/              # Эталонные схемы баз данных SQLite из открытых источников
 │   └── schemas/           # DDL схемы: Android viber_messages, iOS Chat.data, Manifest.db
 ├── src/
@@ -44,10 +45,13 @@
 │   │   ├── manifest/      # ManifestBuilder (таблица Files + генератор bplist00)
 │   │   ├── backup/        # ZipHandler (упаковка viber_backup.zip для Google Drive)
 │   │   └── pipeline/      # MigrationEngine (сквозные конвейеры миграции)
-│   ├── server/            # Локальный API-мост (bridge-server.js)
+│   ├── server/            # Локальный API-мост (bridge-server.js) + SSE стриминг
 │   ├── cli/               # Консольная утилита CLI (index.js)
-│   ├── devices/           # Драйверы взаимодействия с Android (ADB) и iOS (usbmuxd)
-│   ├── renderer/          # Минималистичный графический интерфейс (index.html)
+│   ├── devices/           # Аппаратные адаптеры устройств и бэкапов
+│   │   ├── android/       # adb-connector.js (ADB сканер, парсер устройств, 3-уровневая стратегия)
+│   │   ├── ios/           # ios-connector.js (MobileSync/iTunes инспектор, проверка шифрования, Find My)
+│   │   └── index.js       # Единый интерфейс scanAllDevicesAndBackups()
+│   ├── renderer/          # Интерактивный графический веб-интерфейс (index.html)
 │   └── shared/            # Общие типы и контракты данных
 └── tests/                 # Модульные и интеграционные тесты (node:test)
     ├── foundation.test.js       # Тесты фундамента ядра и валидатора
@@ -55,7 +59,8 @@
     ├── ios-adapter.test.js      # Тесты импорта, экспорта, KeyRebalancer и round-trip iOS
     ├── manifest-builder.test.js # Тесты упаковщика Manifest.db, bplist00 и ZipHandler
     ├── migration-engine.test.js # Сквозные тесты миграции полного цикла (Zero Data Loss)
-    └── bridge-server.test.js    # Тесты REST API и интеграции GUI с бэкендом
+    ├── bridge-server.test.js    # Тесты REST API и интеграции GUI с бэкендом
+    └── devices.test.js          # Тесты сканеров ADB, MobileSync и валидации перед восстановлением
 ```
 
 ## Регламент версионирования

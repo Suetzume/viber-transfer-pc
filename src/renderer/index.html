@@ -173,6 +173,9 @@
       gap: 6px;
       font-size: 12px;
       color: var(--success);
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.1);
     }
 
     .status-dot::before {
@@ -182,6 +185,48 @@
       border-radius: 50%;
       background: var(--success);
       box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+    }
+
+    .status-dot.warning {
+      color: var(--warning);
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .status-dot.warning::before {
+      background: var(--warning);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+    }
+
+    .status-dot.offline {
+      color: #9ca3af;
+      background: rgba(107, 114, 128, 0.12);
+    }
+
+    .status-dot.offline::before {
+      background: #6b7280;
+      box-shadow: none;
+    }
+
+    .refresh-devices-btn {
+      background: #191c28;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .refresh-devices-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
     }
 
     .device-select {
@@ -448,8 +493,9 @@
         </div>
       </div>
       <div class="server-status">
+        <button class="refresh-devices-btn" id="refreshBtn" onclick="refreshHardwareDevices()" title="Повторно сканировать USB-устройства и бэкапы">🔄 Сканировать устройства</button>
         <span class="api-badge" id="apiBadge">Бридж-сервер: Подключение...</span>
-        <span class="version-tag">v1.2.0 • Core</span>
+        <span class="version-tag">v2.0.0 • Final</span>
       </div>
     </header>
 
@@ -560,6 +606,7 @@
   <script>
     let isReversed = false;
     let isServerOnline = false;
+    let systemDevices = null;
     const API_BASE = window.location.origin.includes('http') ? window.location.origin : 'http://localhost:34567';
 
     // Подключение к серверу и SSE-стриму
@@ -574,16 +621,8 @@
           apiBadge.innerText = 'Бридж-сервер: В сети (Online)';
           document.getElementById('memCheckText').innerHTML = `Память: <strong>${data.freeMemMb} MB свободно</strong>`;
 
-          // Запрос обнаружения баз десктопа
-          const accRes = await fetch(`${API_BASE}/api/detect-desktop`);
-          const accData = await accRes.json();
-          if (accData.success && accData.accounts.length > 0) {
-            const acc = accData.accounts[0];
-            document.getElementById('sourceDetails').innerHTML = `
-              <div>Аккаунт: ${acc.phone}</div>
-              <div>База: ${acc.dbPath} (${Math.round(acc.sizeBytes / 1024)} KB)</div>
-            `;
-          }
+          // Сканируем устройства и бэкапы
+          await refreshHardwareDevices();
         }
       } catch (e) {
         isServerOnline = false;
@@ -605,73 +644,149 @@
       }
     }
 
-    function handleServerEvent(evt) {
-      if (evt.type === 'progress') {
-        const pb = document.getElementById('progressBar');
-        const pt = document.getElementById('progressPercent');
-        const st = document.getElementById('progressStepTitle');
+    async function refreshHardwareDevices() {
+      const refreshBtn = document.getElementById('refreshBtn');
+      if (refreshBtn) refreshBtn.innerText = '⌛ Сканирование...';
 
-        pb.style.width = evt.percent + '%';
-        pt.innerText = evt.percent + '%';
-        st.innerText = evt.message;
-        log(evt.message, evt.percent === 100 ? 'ok' : 'info');
-      } else if (evt.type === 'complete') {
-        const rep = evt.report;
-        document.getElementById('statChats').innerText = rep.chatsCount;
-        document.getElementById('statMsgs').innerText = rep.messagesCount;
-        document.getElementById('statDeduplicated').innerText = rep.deduplicatedCount;
-        document.getElementById('statDuration').innerText = rep.durationMs + ' ms';
-        
-        document.getElementById('successDesc').innerText = 
-          `Успешно перенесено ${rep.chatsCount} диалогов и ${rep.messagesCount} сообщений (0 ошибок, Zero Data Loss).`;
-
-        setTimeout(() => {
-          document.getElementById('progressSection').style.display = 'none';
-          document.getElementById('successCard').style.display = 'flex';
-        }, 600);
+      try {
+        const res = await fetch(`${API_BASE}/api/devices`);
+        if (res.ok) {
+          systemDevices = await res.json();
+          renderDeviceSelectors();
+        }
+      } catch (err) {
+        console.warn('Не удалось опросить устройства:', err);
+      } finally {
+        if (refreshBtn) refreshBtn.innerText = '🔄 Сканировать устройства';
       }
+    }
+
+    function renderDeviceSelectors() {
+      if (!systemDevices) return;
+      const srcSelect = document.getElementById('sourceSelect');
+      const targetSelect = document.getElementById('targetSelect');
+      const srcStatus = document.getElementById('srcStatus');
+      const targetStatus = document.getElementById('targetStatus');
+
+      const androidDevs = systemDevices.android?.devices || [];
+      const desktopAccs = systemDevices.android?.desktopAccounts || [];
+      const iosBackups = systemDevices.ios?.backups || [];
+
+      if (!isReversed) {
+        // Источник: Android / Viber Desktop
+        let srcHtml = '';
+        if (desktopAccs.length > 0) {
+          desktopAccs.forEach(acc => {
+            srcHtml += `<option value="desktop_${acc.phone}">💻 Viber Desktop (${acc.phone})</option>`;
+          });
+        }
+        if (androidDevs.length > 0) {
+          androidDevs.forEach(d => {
+            const auth = d.isAuthorized ? '✓ Готов' : '⚠️ Требует авторизации';
+            srcHtml += `<option value="adb_${d.serial}">📱 ${d.model} (${d.serial}) [${auth}]</option>`;
+          });
+        }
+        srcHtml += `<option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>`;
+        srcHtml += `<option value="demo">🧪 Тестовая база Android (Демо-режим)</option>`;
+        srcSelect.innerHTML = srcHtml;
+
+        // Приемник: iPhone / iOS бэкап
+        let targetHtml = '';
+        if (iosBackups.length > 0) {
+          iosBackups.forEach(b => {
+            const enc = b.isEncrypted ? '🔒 Зашифрован' : '✓ Готов';
+            targetHtml += `<option value="backup_${b.udid}">🍏 ${b.deviceName} (${b.iosVersion}) [${enc}]</option>`;
+          });
+        }
+        targetHtml += `<option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>`;
+        targetHtml += `<option value="ios_backup">📁 Локальная копия iTunes (Manifest.db)</option>`;
+        targetSelect.innerHTML = targetHtml;
+
+        // Индикаторы статуса
+        if (desktopAccs.length > 0) {
+          srcStatus.className = 'status-dot';
+          srcStatus.innerText = 'Viber Desktop найден';
+        } else if (androidDevs.some(d => d.isAuthorized)) {
+          srcStatus.className = 'status-dot';
+          srcStatus.innerText = 'USB Телефон подключен';
+        } else if (androidDevs.length > 0) {
+          srcStatus.className = 'status-dot warning';
+          srcStatus.innerText = 'Требуется подтвердить на экране';
+        } else {
+          srcStatus.className = 'status-dot offline';
+          srcStatus.innerText = 'USB не подключен';
+        }
+
+        if (iosBackups.length > 0) {
+          targetStatus.className = 'status-dot';
+          targetStatus.innerText = `${iosBackups.length} бэкап(ов) найдено`;
+        } else {
+          targetStatus.className = 'status-dot warning';
+          targetStatus.innerText = 'Ожидание копии iTunes';
+        }
+      } else {
+        // Источник: iOS / iTunes
+        let srcHtml = '';
+        if (iosBackups.length > 0) {
+          iosBackups.forEach(b => {
+            srcHtml += `<option value="backup_${b.udid}">🍏 ${b.deviceName} (${b.iosVersion})</option>`;
+          });
+        }
+        srcHtml += `<option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>`;
+        srcHtml += `<option value="demo_ios">🧪 Синтетическая база iOS (Демо)</option>`;
+        srcSelect.innerHTML = srcHtml;
+
+        let targetHtml = '';
+        if (androidDevs.length > 0) {
+          androidDevs.forEach(d => {
+            targetHtml += `<option value="adb_${d.serial}">📱 ${d.model} (${d.serial})</option>`;
+          });
+        }
+        targetHtml += `<option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>`;
+        targetHtml += `<option value="local_sqlite">📱 Локальный файл (viber_messages.db)</option>`;
+        targetSelect.innerHTML = targetHtml;
+      }
+
+      updateDeviceViews();
     }
 
     function swapDirection() {
       isReversed = !isReversed;
-      const srcSelect = document.getElementById('sourceSelect');
-      const targetSelect = document.getElementById('targetSelect');
-
-      if (isReversed) {
-        srcSelect.innerHTML = `
-          <option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>
-          <option value="ios_backup">📁 Локальная копия iTunes (Manifest.db)</option>
-        `;
-        targetSelect.innerHTML = `
-          <option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>
-          <option value="android_usb">📱 Android Smartphone (USB)</option>
-        `;
-      } else {
-        srcSelect.innerHTML = `
-          <option value="desktop">💻 Viber Desktop (Синхронизированная база)</option>
-          <option value="android_usb">📱 Android Smartphone (USB / ADB)</option>
-          <option value="gdrive">☁️ Google Drive (viber_backup.zip)</option>
-        `;
-        targetSelect.innerHTML = `
-          <option value="ios_usb">🍏 Apple iPhone (USB / usbmuxd)</option>
-          <option value="ios_backup">📁 Локальная копия iTunes (Manifest.db)</option>
-          <option value="android_target">📱 Android (Восстановление через архив)</option>
-        `;
-      }
-      updateDeviceViews();
+      renderDeviceSelectors();
     }
 
     function updateDeviceViews() {
       const srcVal = document.getElementById('sourceSelect').value;
       const srcDetails = document.getElementById('sourceDetails');
-      if (srcVal === 'desktop') {
-        srcDetails.innerHTML = '<div>Канал: %AppData%\\ViberPC\\viber.db</div><div>Статус: Готов к прямому чтению</div>';
+      const targetVal = document.getElementById('targetSelect').value;
+      const targetDetails = document.getElementById('targetDetails');
+
+      if (srcVal.startsWith('desktop')) {
+        const phone = srcVal.replace('desktop_', '');
+        srcDetails.innerHTML = `<div>Канал: %AppData%\\ViberPC\\${phone}\\viber.db</div><div>Статус: Прямое SQLite чтение</div>`;
+      } else if (srcVal.startsWith('adb_')) {
+        const serial = srcVal.replace('adb_', '');
+        srcDetails.innerHTML = `<div>Шина: ADB Shell (USB)</div><div>Серийный номер: ${serial}</div>`;
       } else if (srcVal === 'gdrive') {
-        srcDetails.innerHTML = '<div>Облако: Google Drive AppData</div><div>Статус: Токен авторизован</div>';
-      } else if (srcVal.includes('ios')) {
-        srcDetails.innerHTML = '<div>Устройство: iPhone (iOS MobileBackup2)</div><div>Статус: Бэкап готов к чтению</div>';
+        srcDetails.innerHTML = '<div>Облако: Google Drive AppData</div><div>Формат: viber_backup.zip</div>';
+      } else if (srcVal.startsWith('backup_')) {
+        const udid = srcVal.replace('backup_', '');
+        srcDetails.innerHTML = `<div>Канал: iTunes MobileSync</div><div>UDID: ${udid.slice(0, 16)}...</div>`;
+      } else if (srcVal === 'demo' || srcVal === 'demo_ios') {
+        srcDetails.innerHTML = '<div>Канал: Синтетический генератор данных</div><div>Статус: Демонстрационный режим</div>';
       } else {
-        srcDetails.innerHTML = '<div>Шина: ADB Shell Bridge</div><div>Статус: Отладка по USB активна</div>';
+        srcDetails.innerHTML = '<div>Шина: USB Кабель</div><div>Статус: Поиск устройства...</div>';
+      }
+
+      if (targetVal.startsWith('backup_')) {
+        const udid = targetVal.replace('backup_', '');
+        targetDetails.innerHTML = `<div>Цель: iTunes Backup (${udid.slice(0, 12)}...)</div><div>Метод: Инъекция Manifest.db</div>`;
+      } else if (targetVal === 'ios_usb') {
+        targetDetails.innerHTML = '<div>Шина: Apple Mobile Device Service</div><div>Статус: Ожидание подтверждения доверия</div>';
+      } else if (targetVal === 'gdrive') {
+        targetDetails.innerHTML = '<div>Выходной формат: viber_backup.zip</div><div>Статус: Готов к загрузке в облако</div>';
+      } else {
+        targetDetails.innerHTML = '<div>Формат: SQLite viber_messages.db</div><div>Статус: Готов к записи</div>';
       }
     }
 
