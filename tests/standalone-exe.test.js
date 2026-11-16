@@ -52,4 +52,39 @@ describe('Distribution: Standalone ViberTransfer.exe Verification', () => {
 
     assert.ok(serverReady, 'ViberTransfer.exe должен запуститься и ответить на /api/preflight с кодом 200');
   });
+
+  test('ViberTransfer.exe корректно отдает HTML-интерфейс на главной странице GET /', async () => {
+    const child = spawn(EXE_PATH, [], {
+      env: { ...process.env, PORT: String(TEST_EXE_PORT + 1) },
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+
+    const htmlContent = await new Promise((resolve) => {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        const req = http.get(`http://localhost:${TEST_EXE_PORT + 1}/`, (res) => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.on('end', () => {
+            clearInterval(interval);
+            resolve({ status: res.statusCode, body });
+          });
+        });
+        req.on('error', () => {
+          if (attempts > 25) {
+            clearInterval(interval);
+            resolve(null);
+          }
+        });
+      }, 200);
+    });
+
+    child.kill('SIGTERM');
+
+    assert.ok(htmlContent, 'Сервер должен ответить на запрос GET /');
+    assert.equal(htmlContent.status, 200);
+    assert.ok(htmlContent.body.includes('Viber Transfer PC Bridge'), 'Ответ должен содержать заголовок Viber Transfer');
+    assert.ok(htmlContent.body.includes('<!DOCTYPE html>'), 'Ответ должен содержать HTML разметку');
+  });
 });

@@ -61,6 +61,9 @@ const __VIRTUAL_ASSETS__ = {
   'sample_manifest.sql': ${JSON.stringify(manifestSql)}
 };
 
+global.__EMBEDDED_INDEX_HTML__ = __VIRTUAL_ASSETS__['index.html'];
+global.__VIRTUAL_ASSETS__ = __VIRTUAL_ASSETS__;
+
 // Перехват fs.readFileSync для чтения встроенных виртуальных ресурсов
 const __node_fs = require('node:fs');
 const __originalReadFileSync = __node_fs.readFileSync;

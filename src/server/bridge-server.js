@@ -37,12 +37,50 @@ function broadcastEvent(data) {
   }
 }
 
+function getSqlFixture(fileName) {
+  if (global.__VIRTUAL_ASSETS__ && global.__VIRTUAL_ASSETS__[fileName]) {
+    return global.__VIRTUAL_ASSETS__[fileName];
+  }
+  const candidateDirs = [
+    FIXTURES_DIR,
+    path.join(process.cwd(), 'fixtures/schemas'),
+    path.join(path.dirname(process.execPath), 'fixtures/schemas')
+  ];
+  for (const dir of candidateDirs) {
+    const full = path.join(dir, fileName);
+    if (fs.existsSync(full)) {
+      return fs.readFileSync(full, 'utf8');
+    }
+  }
+  throw new Error(`SQL фикстура не найдена: ${fileName}`);
+}
+
+function getIndexHtml() {
+  if (global.__EMBEDDED_INDEX_HTML__) {
+    return global.__EMBEDDED_INDEX_HTML__;
+  }
+  if (global.__VIRTUAL_ASSETS__ && global.__VIRTUAL_ASSETS__['index.html']) {
+    return global.__VIRTUAL_ASSETS__['index.html'];
+  }
+  const candidatePaths = [
+    path.join(RENDERER_DIR, 'index.html'),
+    path.join(process.cwd(), 'src/renderer/index.html'),
+    path.join(path.dirname(process.execPath), 'src/renderer/index.html')
+  ];
+  for (const cp of candidatePaths) {
+    if (fs.existsSync(cp)) {
+      return fs.readFileSync(cp, 'utf8');
+    }
+  }
+  throw new Error('index.html не найден');
+}
+
 /**
  * Создает синтетическую тестовую базу Android для демо-миграции
  */
 function createDemoAndroidDb() {
   const db = new DatabaseSync(':memory:');
-  const ddl = fs.readFileSync(path.join(FIXTURES_DIR, 'android_viber_messages.sql'), 'utf8');
+  const ddl = getSqlFixture('android_viber_messages.sql');
   db.exec(ddl);
 
   db.exec(`
@@ -178,21 +216,21 @@ const server = http.createServer((req, res) => {
         if (direction === 'android-to-ios') {
           const androidDb = isDemo ? createDemoAndroidDb() : params.sourcePath;
           const iosDb = new DatabaseSync(':memory:');
-          const iosDdlPath = path.join(FIXTURES_DIR, 'ios_viber_chat.sql');
+          const iosDdl = getSqlFixture('ios_viber_chat.sql');
           const manifestDb = new DatabaseSync(':memory:');
-          manifestDb.exec(fs.readFileSync(path.join(FIXTURES_DIR, 'sample_manifest.sql'), 'utf8'));
+          manifestDb.exec(getSqlFixture('sample_manifest.sql'));
 
           report = migrateAndroidToIOS({
             androidDb,
             targetIosDb: iosDb,
             manifestDb,
-            iosDdlPath,
+            iosDdlPath: iosDdl,
             onProgress
           });
         } else {
           // iOS -> Android
           const iosDb = new DatabaseSync(':memory:');
-          iosDb.exec(fs.readFileSync(path.join(FIXTURES_DIR, 'ios_viber_chat.sql'), 'utf8'));
+          iosDb.exec(getSqlFixture('ios_viber_chat.sql'));
           iosDb.exec(`
             INSERT INTO ZCONVERSATION (Z_PK, Z_ENT, Z_OPT, ZTYPE, ZDATE, ZNAME, ZUNREADCOUNT)
             VALUES (1, 1, 1, 0, 736692800.0, 'Тестовый чат iOS', 0);
@@ -203,12 +241,12 @@ const server = http.createServer((req, res) => {
           `);
 
           const androidDb = new DatabaseSync(':memory:');
-          const androidDdlPath = path.join(FIXTURES_DIR, 'android_viber_messages.sql');
+          const androidDdl = getSqlFixture('android_viber_messages.sql');
 
           report = migrateIOSToAndroid({
             iosDb,
             targetAndroidDb: androidDb,
-            androidDdlPath,
+            androidDdlPath: androidDdl,
             onProgress
           });
         }
@@ -226,9 +264,18 @@ const server = http.createServer((req, res) => {
   }
 
   // Статические файлы интерфейса (index.html)
-  let filePath = path.join(RENDERER_DIR, url.pathname === '/' ? 'index.html' : url.pathname);
+  if (url.pathname === '/' || url.pathname === '/index.html') {
+    try {
+      const html = getIndexHtml();
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(html);
+      return;
+    } catch (_) {}
+  }
+
+  let filePath = path.join(RENDERER_DIR, url.pathname);
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-    let contentType = 'text/html';
+    let contentType = 'text/plain';
     if (filePath.endsWith('.js')) contentType = 'application/javascript';
     if (filePath.endsWith('.css')) contentType = 'text/css';
     if (filePath.endsWith('.json')) contentType = 'application/json';
