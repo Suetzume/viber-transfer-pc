@@ -112,7 +112,7 @@ describe('Stage 7: Bilingual UI Support (RU/EN) & Language Switcher', () => {
     assert.ok(res.headers['cache-control'], 'Ответ должен содержать заголовок Cache-Control');
     assert.ok(res.headers['cache-control'].includes('no-cache'), 'Cache-Control должен содержать no-cache');
     assert.ok(res.body.includes('langSwitchBtn'), 'Возвращаемый HTML должен содержать langSwitchBtn');
-    assert.ok(res.body.includes('v3.1.1'), 'Версия в HTML должна быть обновлена до v3.1.1');
+    assert.ok(res.body.includes('v3.2.0'), 'Версия в HTML должна быть обновлена до v3.2.0');
   });
 
   it('Hardware Diagnostics Contract: renderDiagnostics и applyLanguage корректно переводят все статусы устройств и служб', () => {
