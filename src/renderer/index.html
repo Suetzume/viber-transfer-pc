@@ -693,7 +693,7 @@
         </button>
         <button class="refresh-devices-btn" id="refreshBtn" onclick="refreshHardwareDevices()" title="Повторно сканировать USB-устройства и бэкапы">🔄 Сканировать устройства</button>
         <span class="api-badge" id="apiBadge">Бридж-сервер: В сети</span>
-        <span class="version-tag">v3.1.0 • Final Enterprise Release</span>
+        <span class="version-tag">v3.1.1 • Final Enterprise Release</span>
       </div>
     </header>
 
@@ -1040,7 +1040,7 @@
         scanDevicesActive: '⌛ Опрос USB...',
         serverOnline: 'Бридж-сервер: В сети (Online)',
         serverOffline: 'Сервер офлайн',
-        versionTag: 'v3.1.0 • Final Enterprise Release',
+        versionTag: 'v3.1.1 • Final Enterprise Release',
 
         directionAndroidToIos: 'Направление: Android ➔ iPhone',
         directionIosToAndroid: 'Направление: iPhone ➔ Android (Реверс)',
@@ -1155,7 +1155,7 @@
         scanDevicesActive: '⌛ Scanning USB...',
         serverOnline: 'Bridge Server: Online',
         serverOffline: 'Server Offline',
-        versionTag: 'v3.1.0 • Final Enterprise Release',
+        versionTag: 'v3.1.1 • Final Enterprise Release',
 
         directionAndroidToIos: 'Direction: Android ➔ iPhone',
         directionIosToAndroid: 'Direction: iPhone ➔ Android (Reverse)',
@@ -1453,8 +1453,30 @@
       const resetBtn = document.getElementById('resetBtn');
       if (resetBtn) resetBtn.innerText = t.resetBtn;
 
+      // Update hardware and status indicators
+      const srcStatus = document.getElementById('srcHardwareStatus');
+      const usbTitle = document.getElementById('usbModelTitle');
+      const usbMeta = document.getElementById('usbModelMeta');
+      const usbDot = document.getElementById('usbStateDot');
+      const targetStatus = document.getElementById('targetHardwareStatus');
+      const itunesText = document.getElementById('itunesStatusText');
+      const detectText = document.getElementById('desktopDetectText');
+      const launchBtn = document.getElementById('launchViberBtn');
+
+      if (!systemDevices) {
+        if (srcStatus) srcStatus.innerText = t.statusSearching;
+        if (usbTitle) usbTitle.innerText = t.phoneNotFound;
+        if (usbMeta) usbMeta.innerText = t.connectViaUsb;
+        if (usbDot) usbDot.innerText = t.notConnected;
+        if (targetStatus) targetStatus.innerText = t.waitingBackup;
+        if (itunesText) itunesText.innerText = t.checkingAppleServices;
+        if (detectText) detectText.innerHTML = t.desktopNotFoundBanner;
+        if (launchBtn) launchBtn.innerText = t.launchViberBtn;
+      } else {
+        renderDiagnostics();
+      }
+
       updateSummary();
-      if (systemDevices) renderDiagnostics();
     }
 
     function toggleLanguage() {
@@ -1547,7 +1569,8 @@
 
     async function refreshHardwareDevices() {
       const refreshBtn = document.getElementById('refreshBtn');
-      if (refreshBtn) refreshBtn.innerText = '⌛ Опрос USB...';
+      const t = I18N[currentLang] || I18N.ru;
+      if (refreshBtn) refreshBtn.innerText = t.scanDevicesActive;
 
       try {
         const res = await fetch(`${API_BASE}/api/devices`);
@@ -1558,11 +1581,12 @@
       } catch (err) {
         console.warn('Ошибка опроса устройств:', err);
       } finally {
-        if (refreshBtn) refreshBtn.innerText = '🔄 Сканировать устройства';
+        if (refreshBtn) refreshBtn.innerText = t.scanDevicesBtn;
       }
     }
 
     function renderDiagnostics() {
+      const t = I18N[currentLang] || I18N.ru;
       if (!systemDevices) return;
 
       // 1. Диагностика Android
@@ -1575,25 +1599,25 @@
 
       if (dev && dev.isAuthorized) {
         srcStatus.className = 'status-dot';
-        srcStatus.innerText = 'Телефон подключен ✓';
+        srcStatus.innerText = t.statusPhoneConnected;
         usbModelTitle.innerText = `📱 ${dev.friendlyName || dev.model}`;
-        usbModelMeta.innerText = `Android ${dev.osVersion} • ADB ${dev.serial} • Viber: ${dev.viberInstalled ? 'Установлен ✓' : 'Не найден'}`;
+        usbModelMeta.innerText = `Android ${dev.osVersion} • ADB ${dev.serial} • Viber: ${dev.viberInstalled ? (currentLang === 'en' ? 'Installed ✓' : 'Установлен ✓') : (currentLang === 'en' ? 'Not found' : 'Не найден')}`;
         usbStateDot.className = 'status-dot';
-        usbStateDot.innerText = 'Авторизован ✓';
+        usbStateDot.innerText = t.authorized;
       } else if (dev && dev.state === 'unauthorized') {
         srcStatus.className = 'status-dot warning';
-        srcStatus.innerText = 'Требуется подтверждение';
-        usbModelTitle.innerText = `📱 ${dev.model || 'Android устройство'}`;
-        usbModelMeta.innerText = 'Разблокируйте телефон и нажмите «Разрешить отладку с этого компьютера»';
+        srcStatus.innerText = t.statusNeedsAuth;
+        usbModelTitle.innerText = `📱 ${dev.model || (currentLang === 'en' ? 'Android Device' : 'Android устройство')}`;
+        usbModelMeta.innerText = currentLang === 'en' ? 'Unlock phone and tap "Allow USB debugging"' : 'Разблокируйте телефон и нажмите «Разрешить отладку с этого компьютера»';
         usbStateDot.className = 'status-dot warning';
-        usbStateDot.innerText = 'Ожидание RSA';
+        usbStateDot.innerText = t.waitingRsa;
       } else {
         srcStatus.className = 'status-dot offline';
-        srcStatus.innerText = 'USB не подключен';
-        usbModelTitle.innerText = '📱 Телефон не обнаружен';
-        usbModelMeta.innerText = 'Подключите смартфон кабелем USB к компьютеру';
+        srcStatus.innerText = t.statusUsbDisconnected;
+        usbModelTitle.innerText = t.phoneNotFound;
+        usbModelMeta.innerText = t.connectViaUsb;
         usbStateDot.className = 'status-dot offline';
-        usbStateDot.innerText = 'Не подключен';
+        usbStateDot.innerText = t.notConnected;
       }
 
       // Проверка Viber Desktop
@@ -1604,19 +1628,32 @@
       const launchBtn = document.getElementById('launchViberBtn');
       const launchTabBtn = document.getElementById('launchViberDesktopTabBtn');
 
-      if (android.desktopLauncher && android.desktopLauncher.label) {
-        if (launchBtn) launchBtn.innerText = '🚀 ' + android.desktopLauncher.label;
-        if (launchTabBtn) launchTabBtn.innerText = '🚀 ' + android.desktopLauncher.label;
+      if (android.desktopLauncher) {
+        let label = '';
+        if (android.desktopLauncher.type === 'installed') {
+          label = currentLang === 'en' ? 'Launch Installed Viber Desktop' : 'Запустить установленный Viber Desktop';
+        } else if (android.desktopLauncher.type === 'installer') {
+          label = currentLang === 'en' ? 'Install Viber Desktop (ViberSetup.exe)' : 'Установить Viber Desktop (ViberSetup.exe)';
+        } else {
+          label = currentLang === 'en' ? 'Download Viber Desktop' : 'Скачать Viber Desktop';
+        }
+        if (launchBtn) launchBtn.innerText = '🚀 ' + label;
+        if (launchTabBtn) launchTabBtn.innerText = '🚀 ' + label;
+      } else {
+        if (launchBtn) launchBtn.innerText = t.launchViberBtn;
+        if (launchTabBtn) launchTabBtn.innerText = t.openViberDesktopBtn;
       }
 
       if (accs.length > 0) {
         const acc = accs[0];
         if (!dbInput.value) dbInput.value = acc.dbPath;
         detectBanner.className = 'alert-banner success';
-        detectText.innerHTML = `Найдена база аккаунта <strong>${acc.phone}</strong> (${Math.round(acc.sizeBytes / 1024)} КБ).`;
+        detectText.innerHTML = currentLang === 'en'
+          ? `Found account database <strong>${acc.phone}</strong> (${Math.round(acc.sizeBytes / 1024)} KB).`
+          : `Найдена база аккаунта <strong>${acc.phone}</strong> (${Math.round(acc.sizeBytes / 1024)} КБ).`;
       } else {
         detectBanner.className = 'alert-banner info';
-        detectText.innerHTML = `База Viber Desktop не найдена в %AppData%\\ViberPC. Нажмите кнопку выше для запуска и отсканируйте QR-код телефоном.`;
+        detectText.innerHTML = t.desktopNotFoundBanner;
       }
 
       // 2. Диагностика Apple / iTunes
@@ -1629,21 +1666,23 @@
       if (ios.backups && ios.backups.length > 0) {
         const b = ios.backups[0];
         targetStatus.className = 'status-dot';
-        targetStatus.innerText = 'Бэкап готов ✓';
+        targetStatus.innerText = t.backupReady;
         itunesBanner.className = 'alert-banner success';
-        itunesText.innerHTML = `Найдена резервная копия: <strong>${b.deviceName}</strong> (${b.iosVersion}), файлов: ${b.totalFiles}.`;
+        itunesText.innerHTML = currentLang === 'en'
+          ? `Found backup: <strong>${b.deviceName}</strong> (${b.iosVersion}), files: ${b.totalFiles}.`
+          : `Найдена резервная копия: <strong>${b.deviceName}</strong> (${b.iosVersion}), файлов: ${b.totalFiles}.`;
         const targetInput = document.getElementById('targetBackupInput');
         if (!targetInput.value) targetInput.value = b.backupPath;
       } else if (appleServices.appleServicesAvailable) {
         targetStatus.className = 'status-dot warning';
-        targetStatus.innerText = 'Ожидание копии в iTunes';
+        targetStatus.innerText = currentLang === 'en' ? 'Waiting for iTunes backup' : 'Ожидание копии в iTunes';
         itunesBanner.className = 'alert-banner info';
-        itunesText.innerHTML = `Службы Apple активны на ПК. Создайте локальную копию iPhone в iTunes (без пароля).`;
+        itunesText.innerHTML = t.appleServicesReady;
       } else {
         targetStatus.className = 'status-dot offline';
-        targetStatus.innerText = 'iTunes не установлен';
+        targetStatus.innerText = currentLang === 'en' ? 'iTunes not installed' : 'iTunes не установлен';
         itunesBanner.className = 'alert-banner warning';
-        itunesText.innerHTML = `iTunes не найден на компьютере. <a href="https://apps.microsoft.com/detail/9np83lwlpz9k" target="_blank" style="color: inherit; font-weight: 600; text-decoration: underline;">Установите «Устройства Apple» из Microsoft Store</a> или iTunes.`;
+        itunesText.innerHTML = t.appleServicesNotFound;
       }
 
       updateSummary();
@@ -1830,22 +1869,30 @@
           box.style.display = 'flex';
           if (data.isEncrypted) {
             box.className = 'alert-banner warning';
-            box.innerHTML = '<div>⚠️</div><div><strong>Внимание: Резервная копия зашифрована паролем!</strong><br>iTunes откажется восстановить модифицированный бэкап (Ошибка 14/54). Пожалуйста, снимите флажок «Зашифровать локальную копию» в iTunes перед продолжением.</div>';
-            log('Обнаружена зашифрованная копия iTunes! Требуется отключить шифрование.', 'warn');
+            box.innerHTML = currentLang === 'en'
+              ? '<div>⚠️</div><div><strong>Warning: Backup is password-encrypted!</strong><br>iTunes will reject restoring a modified backup (Error 14/54). Please uncheck "Encrypt local backup" in iTunes before proceeding.</div>'
+              : '<div>⚠️</div><div><strong>Внимание: Резервная копия зашифрована паролем!</strong><br>iTunes откажется восстановить модифицированный бэкап (Ошибка 14/54). Пожалуйста, снимите флажок «Зашифровать локальную копию» в iTunes перед продолжением.</div>';
+            log(currentLang === 'en' ? 'Encrypted iTunes backup detected! Encryption must be disabled.' : 'Обнаружена зашифрованная копия iTunes! Требуется отключить шифрование.', 'warn');
           } else if (data.valid) {
             box.className = 'alert-banner ok';
-            box.innerHTML = '<div>✓</div><div><strong>Резервная копия готова к приему данных:</strong><br>Шифрование: Отключено (Безопасно). Наличие Manifest.db подтверждено.</div>';
-            log('Резервная копия проверена: шифрование выключено, готова к записи.', 'ok');
+            box.innerHTML = currentLang === 'en'
+              ? '<div>✓</div><div><strong>Backup is ready for data import:</strong><br>Encryption: Disabled (Safe). Manifest.db presence verified.</div>'
+              : '<div>✓</div><div><strong>Резервная копия готова к приему данных:</strong><br>Шифрование: Отключено (Безопасно). Наличие Manifest.db подтверждено.</div>';
+            log(currentLang === 'en' ? 'Backup verified: unencrypted, ready for write.' : 'Резервная копия проверена: шифрование выключено, готова к записи.', 'ok');
           } else {
             box.className = 'alert-banner info';
-            box.innerHTML = `<div>ℹ️</div><div><strong>Статус бэкапа:</strong> ${data.errors && data.errors.length ? data.errors.join(', ') : 'Ожидание проверки'}</div>`;
+            box.innerHTML = currentLang === 'en'
+              ? `<div>ℹ️</div><div><strong>Backup status:</strong> ${data.errors && data.errors.length ? data.errors.join(', ') : 'Waiting for inspection'}</div>`
+              : `<div>ℹ️</div><div><strong>Статус бэкапа:</strong> ${data.errors && data.errors.length ? data.errors.join(', ') : 'Ожидание проверки'}</div>`;
           }
         }
       } catch (err) {
         if (box) {
           box.style.display = 'flex';
           box.className = 'alert-banner info';
-          box.innerHTML = `<div>ℹ️</div><div>Проверка бэкапа: ${err.message}</div>`;
+          box.innerHTML = currentLang === 'en'
+            ? `<div>ℹ️</div><div>Backup check error: ${err.message}</div>`
+            : `<div>ℹ️</div><div>Проверка бэкапа: ${err.message}</div>`;
         }
       }
     }

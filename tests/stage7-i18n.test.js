@@ -112,6 +112,14 @@ describe('Stage 7: Bilingual UI Support (RU/EN) & Language Switcher', () => {
     assert.ok(res.headers['cache-control'], 'Ответ должен содержать заголовок Cache-Control');
     assert.ok(res.headers['cache-control'].includes('no-cache'), 'Cache-Control должен содержать no-cache');
     assert.ok(res.body.includes('langSwitchBtn'), 'Возвращаемый HTML должен содержать langSwitchBtn');
-    assert.ok(res.body.includes('v3.1.0'), 'Версия в HTML должна быть обновлена до v3.1.0');
+    assert.ok(res.body.includes('v3.1.1'), 'Версия в HTML должна быть обновлена до v3.1.1');
+  });
+
+  it('Hardware Diagnostics Contract: renderDiagnostics и applyLanguage корректно переводят все статусы устройств и служб', () => {
+    assert.ok(htmlContent.includes("currentLang === 'en' ? 'Launch Installed Viber Desktop'"), 'Кнопка Viber Desktop должна иметь английский перевод');
+    assert.ok(htmlContent.includes("currentLang === 'en' ? 'Waiting for iTunes backup'"), 'Статус ожидания бэкапа iTunes должен иметь английский перевод');
+    assert.ok(htmlContent.includes("currentLang === 'en' ? 'iTunes not installed'"), 'Статус отсутствия iTunes должен иметь английский перевод');
+    assert.ok(htmlContent.includes("t.statusPhoneConnected"), 'Статус подключения телефона должен брать перевод из I18N');
+    assert.ok(htmlContent.includes("t.statusUsbDisconnected"), 'Статус отключения USB должен брать перевод из I18N');
   });
 });
