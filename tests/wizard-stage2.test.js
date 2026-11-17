@@ -72,7 +72,7 @@ describe('Stage 2: Interactive Wizard & Real File Migration Pipeline', () => {
     const content = fs.readFileSync(htmlPath, 'utf8');
 
     // Проверка версии
-    assert.ok(content.includes('v2.'), 'Версия в UI должна быть v2.x');
+    assert.ok(content.includes('v2.') || content.includes('v3.'), 'Версия в UI должна быть актуальной');
 
     // Проверка 3 шагов мастера
     assert.ok(content.includes('stepSection1'), 'Должен присутствовать Шаг 1 (Источник)');

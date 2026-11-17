@@ -668,9 +668,17 @@
       <div class="server-status">
         <button class="refresh-devices-btn" id="refreshBtn" onclick="refreshHardwareDevices()" title="Повторно сканировать USB-устройства и бэкапы">🔄 Сканировать устройства</button>
         <span class="api-badge" id="apiBadge">Бридж-сервер: В сети</span>
-        <span class="version-tag">v2.6.0 • Stage 5 Apple Safeguards</span>
+        <span class="version-tag">v3.0.0 • Final Enterprise Release</span>
       </div>
     </header>
+
+    <!-- Direction Switcher -->
+    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px;">
+      <button class="browse-btn" id="swapDirectionBtn" style="padding: 8px 22px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; border-radius: 20px; background: rgba(115, 96, 242, 0.2); border: 1px solid var(--accent); color: white; cursor: pointer;" onclick="swapMigrationDirection()">
+        <span id="directionIcon" style="font-size: 16px;">⇄</span>
+        <span id="directionText">Направление: Android ➔ iPhone</span>
+      </button>
+    </div>
 
     <!-- Stepper Navigation -->
     <div class="stepper">
@@ -692,18 +700,20 @@
     <div class="step-section" id="stepSection1">
       <div class="step-header">
         <div class="step-title">
-          <span>Шаг 1: Выберите источник переписки Viber</span>
+          <span id="step1Title">Шаг 1: Выберите источник переписки Viber</span>
         </div>
         <span class="status-dot" id="srcHardwareStatus">Поиск устройств...</span>
       </div>
 
-      <!-- Source Tabs -->
-      <div class="source-tabs">
-        <button class="source-tab-btn active" id="tabBtnUsb" onclick="switchSourceTab('usb')">📱 USB Смартфон</button>
-        <button class="source-tab-btn" id="tabBtnDesktop" onclick="switchSourceTab('desktop')">💻 Viber Desktop (ПК)</button>
-        <button class="source-tab-btn" id="tabBtnZip" onclick="switchSourceTab('zip')">☁️ Архив Google Drive</button>
-        <button class="source-tab-btn" id="tabBtnDemo" onclick="switchSourceTab('demo')">🧪 Тестовый макет</button>
-      </div>
+      <!-- Android Source Block -->
+      <div id="androidSourceBlock">
+        <!-- Source Tabs -->
+        <div class="source-tabs">
+          <button class="source-tab-btn active" id="tabBtnUsb" onclick="switchSourceTab('usb')">📱 USB Смартфон</button>
+          <button class="source-tab-btn" id="tabBtnDesktop" onclick="switchSourceTab('desktop')">💻 Viber Desktop (ПК)</button>
+          <button class="source-tab-btn" id="tabBtnZip" onclick="switchSourceTab('zip')">☁️ Архив Google Drive</button>
+          <button class="source-tab-btn" id="tabBtnDemo" onclick="switchSourceTab('demo')">🧪 Тестовый макет</button>
+        </div>
 
       <!-- Tab Content: USB Device -->
       <div id="tabContentUsb" style="display: flex; flex-direction: column; gap: 12px;">
@@ -800,17 +810,41 @@
           </div>
         </div>
       </div>
+    </div> <!-- End androidSourceBlock -->
+
+    <!-- iOS Source Block (for reverse migration iPhone -> Android) -->
+    <div id="iosSourceBlock" style="display: none; flex-direction: column; gap: 12px; margin-top: 12px;">
+      <div class="alert-banner info">
+        <div>🍏</div>
+        <div>
+          <strong>Реверс-миграция: перенос с iPhone на Android:</strong><br>
+          Укажите папку локальной резервной копии iTunes MobileSync или файл <code>Chat.data</code>.
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 12px; color: var(--text-muted);">Папка бэкапа iTunes или файл Chat.data:</label>
+        <div class="input-group">
+          <input type="text" class="path-input" id="sourceIosBackupInput" placeholder="C:\Users\...\Apple Computer\MobileSync\Backup\<UDID>" oninput="updateSummary()">
+          <button class="browse-btn" id="browseIosSourceBtn" onclick="browseIosSource()">📁 Выбрать бэкап iPhone...</button>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+          <button type="button" class="browse-btn" style="font-size: 11px; padding: 4px 10px;" onclick="useDefaultAppleBackupFolderForSource()">⚡ Использовать стандартную папку MobileSync</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: TARGET SELECTION -->
+  <div class="step-section" id="stepSection2">
+    <div class="step-header">
+      <div class="step-title">
+        <span id="step2Title">Шаг 2: Приемник — Apple iPhone (iTunes / MobileSync)</span>
+      </div>
+      <span class="status-dot warning" id="targetHardwareStatus">Ожидание бэкапа</span>
     </div>
 
-    <!-- STEP 2: TARGET (IPHONE) SELECTION -->
-    <div class="step-section" id="stepSection2">
-      <div class="step-header">
-        <div class="step-title">
-          <span>Шаг 2: Приемник — Apple iPhone (iTunes / MobileSync)</span>
-        </div>
-        <span class="status-dot warning" id="targetHardwareStatus">Ожидание бэкапа</span>
-      </div>
-
+    <!-- iOS Target Block (for Android -> iPhone) -->
+    <div id="iosTargetBlock">
       <!-- Apple Services Diagnostic Banner -->
       <div class="alert-banner warning" id="itunesStatusBanner">
         <div>🍏</div>
@@ -843,6 +877,33 @@
         <div id="targetValidationBox" style="display: none; margin-top: 6px;" class="alert-banner"></div>
       </div>
     </div>
+
+    <!-- Android Target Block (for reverse migration iPhone -> Android) -->
+    <div id="androidTargetBlock" style="display: none; flex-direction: column; gap: 12px;">
+      <div class="alert-banner ok">
+        <div>📱</div>
+        <div>
+          <strong>Целевой архив для Android:</strong><br>
+          Программа сконвертирует сообщения и медиавложения в официальный архив <code>viber_backup.zip</code>, совместимый со стандартным восстановлением Viber.
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 12px; color: var(--text-muted);">Путь сохранения архива viber_backup.zip:</label>
+        <div class="input-group">
+          <input type="text" class="path-input" id="targetAndroidZipInput" placeholder="C:\Users\...\Downloads\viber_backup.zip" oninput="updateSummary()">
+          <button class="browse-btn" id="browseAndroidZipBtn" onclick="browseAndroidZipTarget()">📁 Выбрать папку...</button>
+        </div>
+      </div>
+      <div class="instructions-box">
+        <strong>Инструкция восстановления на Android:</strong>
+        <ol>
+          <li>После завершения миграции скопируйте созданный файл <code>viber_backup.zip</code> на Android в папку Загрузки (или в Google Drive).</li>
+          <li>Откройте Viber на Android ➔ Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование ➔ Восстановить.</li>
+          <li>Все ваши диалоги, история и фото будут восстановлены!</li>
+        </ol>
+      </div>
+    </div>
+  </div>
 
     <!-- STEP 3: MIGRATION SUMMARY & ACTION -->
     <div class="step-section" id="stepSection3">
@@ -1354,12 +1415,126 @@
       }
     }
 
+    let migrationDirection = 'android-to-ios';
+
+    function swapMigrationDirection() {
+      migrationDirection = (migrationDirection === 'android-to-ios') ? 'ios-to-android' : 'android-to-ios';
+      
+      const dirText = document.getElementById('directionText');
+      const step1Text = document.getElementById('stepIndicator1').children[1];
+      const step2Text = document.getElementById('stepIndicator2').children[1];
+      const step1Title = document.getElementById('step1Title');
+      const step2Title = document.getElementById('step2Title');
+
+      const androidSrc = document.getElementById('androidSourceBlock');
+      const iosSrc = document.getElementById('iosSourceBlock');
+      const iosTarget = document.getElementById('iosTargetBlock');
+      const androidTarget = document.getElementById('androidTargetBlock');
+
+      if (migrationDirection === 'android-to-ios') {
+        dirText.innerText = 'Направление: Android ➔ iPhone';
+        step1Text.innerText = 'Источник: Android';
+        step2Text.innerText = 'Приемник: iPhone';
+        step1Title.innerText = 'Шаг 1: Выберите источник переписки Viber (Android)';
+        step2Title.innerText = 'Шаг 2: Приемник — Apple iPhone (iTunes / MobileSync)';
+
+        androidSrc.style.display = 'block';
+        iosSrc.style.display = 'none';
+        iosTarget.style.display = 'block';
+        androidTarget.style.display = 'none';
+      } else {
+        dirText.innerText = 'Направление: iPhone ➔ Android';
+        step1Text.innerText = 'Источник: iPhone';
+        step2Text.innerText = 'Приемник: Android';
+        step1Title.innerText = 'Шаг 1: Выберите источник переписки Viber (iPhone)';
+        step2Title.innerText = 'Шаг 2: Приемник — Android (viber_backup.zip)';
+
+        androidSrc.style.display = 'none';
+        iosSrc.style.display = 'flex';
+        iosTarget.style.display = 'none';
+        androidTarget.style.display = 'flex';
+
+        if (!document.getElementById('targetAndroidZipInput').value) {
+          document.getElementById('targetAndroidZipInput').value = 'C:\\Users\\mythi\\Downloads\\viber_backup.zip';
+        }
+      }
+
+      updateSummary();
+    }
+
+    async function browseIosSource() {
+      try {
+        const res = await fetch(`${API_BASE}/api/browse`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'folder' })
+        });
+        const data = await res.json();
+        if (data.success && data.selectedPath) {
+          document.getElementById('sourceIosBackupInput').value = data.selectedPath;
+          updateSummary();
+          log(`Выбран источник iPhone: ${data.selectedPath}`, 'ok');
+        }
+      } catch (err) {
+        log(`Ошибка выбора источника iPhone: ${err.message}`, 'warn');
+      }
+    }
+
+    function useDefaultAppleBackupFolderForSource() {
+      const actualPath = (systemDevices && systemDevices.ios && systemDevices.ios.backups && systemDevices.ios.backups.length > 0)
+        ? systemDevices.ios.backups[0].backupPath
+        : 'C:\\Users\\mythi\\AppData\\Roaming\\Apple Computer\\MobileSync\\Backup';
+      document.getElementById('sourceIosBackupInput').value = actualPath;
+      updateSummary();
+      log(`Указан стандартный источник iTunes: ${actualPath}`, 'info');
+    }
+
+    async function browseAndroidZipTarget() {
+      try {
+        const res = await fetch(`${API_BASE}/api/browse`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'folder' })
+        });
+        const data = await res.json();
+        if (data.success && data.selectedPath) {
+          const zipPath = data.selectedPath.toLowerCase().endsWith('.zip') 
+            ? data.selectedPath 
+            : `${data.selectedPath}\\viber_backup.zip`;
+          document.getElementById('targetAndroidZipInput').value = zipPath;
+          updateSummary();
+          log(`Указан целевой архив: ${zipPath}`, 'ok');
+        }
+      } catch (err) {
+        log(`Ошибка выбора целевой папки: ${err.message}`, 'warn');
+      }
+    }
+
     function updateSummary() {
       const summarySource = document.getElementById('summarySource');
       const summaryTarget = document.getElementById('summaryTarget');
       const summaryMode = document.getElementById('summaryMode');
       const startBtn = document.getElementById('startBtn');
       const startBtnHint = document.getElementById('startBtnHint');
+
+      if (migrationDirection === 'ios-to-android') {
+        const iosSrc = document.getElementById('sourceIosBackupInput').value.trim();
+        const androidZip = document.getElementById('targetAndroidZipInput').value.trim();
+
+        summarySource.innerText = iosSrc ? ('🍏 iPhone: ' + iosSrc.split('\\').pop()) : '🍏 Бэкап iPhone не выбран';
+        summaryTarget.innerText = androidZip ? ('📱 Android: ' + androidZip.split('\\').pop()) : '📱 Архив не указан';
+        summaryMode.innerText = 'Реверс: iPhone ➔ Android (viber_backup.zip)';
+        summaryMode.style.color = 'var(--accent)';
+
+        if (iosSrc) {
+          startBtn.disabled = false;
+          startBtnHint.innerText = 'Готов к реверс-миграции на Android (упаковка в viber_backup.zip)';
+        } else {
+          startBtn.disabled = true;
+          startBtnHint.innerText = 'Укажите папку бэкапа iPhone или базу Chat.data на Шаге 1';
+        }
+        return;
+      }
 
       const dbPath = document.getElementById('viberDbInput').value.trim();
       const zipPath = document.getElementById('viberZipInput').value.trim();
@@ -1441,11 +1616,18 @@
 
       const isDemo = activeTab === 'demo';
       let sourcePath = null;
-      if (activeTab === 'desktop') sourcePath = document.getElementById('viberDbInput').value.trim();
-      if (activeTab === 'zip') sourcePath = document.getElementById('viberZipInput').value.trim();
-      const targetPath = document.getElementById('targetBackupInput').value.trim() || null;
+      let targetPath = null;
 
-      log(`Старт процесса миграции: режим [${isDemo ? 'ДЕМО-ТЕСТ' : 'РЕАЛЬНЫЙ ПЕРЕНОС'}]`, 'info');
+      if (migrationDirection === 'android-to-ios') {
+        if (activeTab === 'desktop') sourcePath = document.getElementById('viberDbInput').value.trim();
+        if (activeTab === 'zip') sourcePath = document.getElementById('viberZipInput').value.trim();
+        targetPath = document.getElementById('targetBackupInput').value.trim() || null;
+      } else {
+        sourcePath = document.getElementById('sourceIosBackupInput').value.trim() || null;
+        targetPath = document.getElementById('targetAndroidZipInput').value.trim() || null;
+      }
+
+      log(`Старт процесса миграции [${migrationDirection}]: режим [${isDemo ? 'ДЕМО-ТЕСТ' : 'РЕАЛЬНЫЙ ПЕРЕНОС'}]`, 'info');
 
       // Живой таймер визуализации
       let currentProgress = 5;
@@ -1467,10 +1649,10 @@
             log('Чтение истории сообщений и контактов...', 'info');
           } else if (currentProgress === 50) {
             st.innerText = 'Конвертация в каноническую UIM-модель...';
-            log('Дедупликация и конвертация таймстампов Cocoa...', 'info');
+            log('Дедупликация и конвертация таймстампов...', 'info');
           } else if (currentProgress === 80) {
-            st.innerText = 'Запись в схему CoreData и Manifest.db...';
-            log('Сдвиг первичных ключей Z_PK и расчет контрольных сумм...', 'ok');
+            st.innerText = 'Запись в целевую схему (CoreData / Android SQLite)...';
+            log('Расчет контрольных сумм и хешей...', 'ok');
           }
         }
       }, 100);
@@ -1480,7 +1662,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            direction: 'android-to-ios',
+            direction: migrationDirection,
             sourcePath,
             targetPath,
             demo: isDemo

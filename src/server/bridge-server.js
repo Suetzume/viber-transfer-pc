@@ -477,25 +477,82 @@ $form.Close()
             onProgress
           });
         } else {
-          // iOS -> Android
-          const iosDb = new DatabaseSync(':memory:');
-          iosDb.exec(getSqlFixture('ios_viber_chat.sql'));
-          iosDb.exec(`
-            INSERT INTO ZCONVERSATION (Z_PK, Z_ENT, Z_OPT, ZTYPE, ZDATE, ZNAME, ZUNREADCOUNT)
-            VALUES (1, 1, 1, 0, 736692800.0, 'Тестовый чат iOS', 0);
-            INSERT INTO ZPARTICIPANT (Z_PK, Z_ENT, Z_OPT, ZCONVERSATION, ZPHONENUMBER, ZDISPLAYNAME, ZISOWNER)
-            VALUES (1, 2, 1, 1, '+380509998877', 'Алексей', 0);
-            INSERT INTO ZMESSAGE (Z_PK, Z_ENT, Z_OPT, ZCONVERSATION, ZSENDER, ZDATE, ZTEXT, ZMESSAGETYPE, ZSTATE, ZISINCOMING)
-            VALUES (1, 3, 1, 1, 1, 736692800.0, 'Сообщение с iPhone', 0, 2, 1);
-          `);
+          // Реальный или Демо пайплайн: iOS -> Android
+          let iosDb;
+          let iosBackupDir = null;
 
-          const androidDb = new DatabaseSync(':memory:');
+          if (isDemo || !params.sourcePath) {
+            iosDb = new DatabaseSync(':memory:');
+            iosDb.exec(getSqlFixture('ios_viber_chat.sql'));
+            iosDb.exec(`
+              INSERT INTO ZCONVERSATION (Z_PK, Z_ENT, Z_OPT, ZTYPE, ZDATE, ZNAME, ZUNREADCOUNT)
+              VALUES (1, 1, 1, 0, 736692800.0, 'Тестовый чат iOS', 0);
+              INSERT INTO ZPARTICIPANT (Z_PK, Z_ENT, Z_OPT, ZCONVERSATION, ZPHONENUMBER, ZDISPLAYNAME, ZISOWNER)
+              VALUES (1, 2, 1, 1, '+380509998877', 'Алексей', 0);
+              INSERT INTO ZMESSAGE (Z_PK, Z_ENT, Z_OPT, ZCONVERSATION, ZSENDER, ZDATE, ZTEXT, ZMESSAGETYPE, ZSTATE, ZISINCOMING)
+              VALUES (1, 3, 1, 1, 1, 736692800.0, 'Сообщение с iPhone', 0, 2, 1);
+            `);
+          } else {
+            const srcPath = params.sourcePath;
+            if (!fs.existsSync(srcPath)) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: false, error: `Исходный путь не найден: ${srcPath}` }));
+              return;
+            }
+
+            const stat = fs.statSync(srcPath);
+            if (stat.isDirectory()) {
+              // Исходный путь — папка бэкапа iTunes
+              iosBackupDir = srcPath;
+              const fileId = computeManifestFileId('AppDomainGroup-group.viber', 'database/Chat.data');
+              const hashedChatPath = path.join(srcPath, fileId.slice(0, 2), fileId);
+
+              if (fs.existsSync(hashedChatPath)) {
+                iosDb = hashedChatPath;
+              } else {
+                let foundPath = null;
+                try {
+                  const items = fs.readdirSync(srcPath, { recursive: true });
+                  for (const it of items) {
+                    if (it.endsWith(fileId) || it.endsWith('Chat.data')) {
+                      foundPath = path.join(srcPath, it);
+                      break;
+                    }
+                  }
+                } catch (_) {}
+
+                if (!foundPath) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ success: false, error: 'В выбранном бэкапе iTunes не обнаружена база Chat.data Viber' }));
+                  return;
+                }
+                iosDb = foundPath;
+              }
+            } else {
+              // Исходный путь — прямой файл Chat.data
+              iosDb = srcPath;
+              iosBackupDir = path.dirname(srcPath);
+            }
+          }
+
+          const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'viber-to-android-'));
+          const targetAndroidDb = path.join(tempDir, 'viber_messages.db');
+          const defaultZip = path.join(tempDir, 'viber_backup.zip');
+          const outputZipPath = params.targetPath || defaultZip;
+
+          const outDir = path.dirname(outputZipPath);
+          if (!fs.existsSync(outDir)) {
+            fs.mkdirSync(outDir, { recursive: true });
+          }
+
           const androidDdl = getSqlFixture('android_viber_messages.sql');
 
           report = migrateIOSToAndroid({
             iosDb,
-            targetAndroidDb: androidDb,
+            targetAndroidDb,
+            iosBackupDir,
             androidDdlPath: androidDdl,
+            outputZipPath,
             onProgress
           });
         }
