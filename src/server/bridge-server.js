@@ -325,6 +325,8 @@ $form.Close()
           broadcastEvent({ type: 'progress', ...evt });
         };
 
+        let mediaSources = null;
+
         if (direction === 'android-to-ios') {
           let androidDb;
           if (isDemo) {
@@ -357,6 +359,17 @@ $form.Close()
               const extractedDbPath = path.join(tempDir, 'viber_messages.db');
               fs.writeFileSync(extractedDbPath, msgEntry.data);
               androidDb = extractedDbPath;
+
+              // Извлекаем все медиавложения из архива
+              const mediaMap = new Map();
+              for (const ent of entries) {
+                if (ent.name !== msgEntry.name && !ent.name.toLowerCase().includes('viber_data')) {
+                  const bname = path.basename(ent.name);
+                  mediaMap.set(bname, ent.data);
+                  mediaMap.set(bname.toLowerCase(), ent.data);
+                }
+              }
+              mediaSources = mediaMap;
             } else {
               let actualDbPath = srcPath;
               if (fs.existsSync(srcPath + '-wal')) {
@@ -373,15 +386,18 @@ $form.Close()
                 actualDbPath = snapDb;
               }
               androidDb = actualDbPath;
+              mediaSources = path.dirname(srcPath);
             }
           }
 
           let iosDb;
           let manifestDb;
+          let targetBackupDir = null;
 
           if (params.targetPath && fs.existsSync(params.targetPath)) {
             const manifestPath = path.join(params.targetPath, 'Manifest.db');
             if (fs.existsSync(manifestPath)) {
+              targetBackupDir = params.targetPath;
               manifestDb = manifestPath;
               const fileId = computeManifestFileId('AppDomainGroup-group.viber', 'database/Chat.data');
               const subDir = path.join(params.targetPath, fileId.slice(0, 2));
@@ -407,6 +423,8 @@ $form.Close()
             androidDb,
             targetIosDb: iosDb,
             manifestDb,
+            targetBackupDir,
+            mediaSources,
             iosDdlPath: iosDdl,
             onProgress
           });

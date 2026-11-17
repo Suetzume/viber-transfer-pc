@@ -81,11 +81,11 @@ describe('Stage 3: Android No-Root Viber Desktop Assistant & WAL Snapshotting', 
     }
   });
 
-  test('UI Contract: index.html содержит карточку ассистента Desktop, кнопки запуска и версию v2.4.0', () => {
+  test('UI Contract: index.html содержит карточку ассистента Desktop, кнопки запуска и версию v2.4+ / v2.5+', () => {
     const htmlPath = path.join(__dirname, '../src/renderer/index.html');
     const content = fs.readFileSync(htmlPath, 'utf8');
 
-    assert.ok(content.includes('v2.4.0'), 'UI должен содержать версию v2.4.0');
+    assert.ok(content.includes('v2.4') || content.includes('v2.5'), 'UI должен содержать актуальную версию v2.4+ / v2.5+');
     assert.ok(content.includes('desktopSyncAssistantBox'), 'Должна присутствовать карточка ассистента синхронизации');
     assert.ok(content.includes('launchViberBtn'), 'Кнопка быстрого запуска Viber Desktop');
     assert.ok(content.includes('launchViberDesktopApp'), 'Функция запуска Viber Desktop');

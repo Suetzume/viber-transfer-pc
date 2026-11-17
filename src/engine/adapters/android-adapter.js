@@ -61,8 +61,11 @@ function openDatabase(dbOrPath) {
  * @returns {Array<object>} массив сессий UIMChatSession
  */
 function importAndroidToUIM(dbOrPath) {
+  const isOwnedDb = typeof dbOrPath === 'string';
   const db = openDatabase(dbOrPath);
   const sessions = [];
+
+  try {
 
   // 1. Проверяем наличие ключевых таблиц
   const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(r => r.name);
@@ -174,6 +177,11 @@ function importAndroidToUIM(dbOrPath) {
   }
 
   return sessions;
+} finally {
+  if (isOwnedDb) {
+    try { db.close(); } catch (_) {}
+  }
+}
 }
 
 /**
@@ -184,7 +192,10 @@ function importAndroidToUIM(dbOrPath) {
  * @returns {{ conversationsCount: number, messagesCount: number }}
  */
 function exportUIMToAndroid(sessions, dbOrPath, ddlPathOrSql = null) {
+  const isOwnedDb = typeof dbOrPath === 'string';
   const db = openDatabase(dbOrPath);
+
+  try {
 
   // Инициализация схемы
   if (ddlPathOrSql) {
@@ -278,6 +289,11 @@ function exportUIMToAndroid(sessions, dbOrPath, ddlPathOrSql = null) {
     conversationsCount: sessions.length,
     messagesCount: totalMessages
   };
+} finally {
+  if (isOwnedDb) {
+    try { db.close(); } catch (_) {}
+  }
+}
 }
 
 module.exports = {

@@ -24,6 +24,7 @@ const {
   upsertManifestRecord
 } = require('../manifest/manifest-builder');
 const { packViberBackupZip } = require('../backup/zip-handler');
+const { injectMediaToIOSBackup, extractMediaFromIOSBackup } = require('./media-pipeline');
 
 /**
  * Сканирует локальную систему на наличие баз данных Viber Desktop
@@ -73,6 +74,8 @@ function migrateAndroidToIOS({
   androidDb,
   targetIosDb,
   manifestDb = null,
+  targetBackupDir = null,
+  mediaSources = null,
   iosDdlPath = null,
   onProgress = () => {}
 }) {
@@ -94,14 +97,27 @@ function migrateAndroidToIOS({
     totalMessages += s.messages.length;
   }
 
+  // Шаг 2.5: Обработка и инжекция медиавложений (CAS)
+  let mediaStats = { mediaCount: 0, totalBytes: 0 };
+  const mDb = manifestDb ? ((typeof manifestDb === 'string') ? openManifestDatabase(manifestDb) : manifestDb) : null;
+  if (mediaSources || (targetBackupDir && mDb)) {
+    onProgress({ step: 'MEDIA', percent: 45, message: 'Инжекция медиавложений (CAS)...' });
+    mediaStats = injectMediaToIOSBackup({
+      sessions,
+      mediaSources,
+      targetBackupDir,
+      manifestDb: mDb,
+      onProgress
+    });
+  }
+
   // Шаг 3: Экспорт в схему iOS с динамическим сдвигом ключей
   onProgress({ step: 'CONVERT', percent: 60, message: 'Конвертация таймстампов Cocoa и запись в CoreData...' });
   const exportRes = exportUIMToIOS(sessions, targetIosDb, iosDdlPath, true);
 
   // Шаг 4: Обновление Manifest.db (если передан)
-  if (manifestDb) {
+  if (mDb) {
     onProgress({ step: 'MANIFEST', percent: 85, message: 'Хеширование и регистрация в iOS Manifest.db...' });
-    const mDb = (typeof manifestDb === 'string') ? openManifestDatabase(manifestDb) : manifestDb;
 
     let targetSize = 1048576;
     if (typeof targetIosDb === 'string' && fs.existsSync(targetIosDb)) {
@@ -119,6 +135,10 @@ function migrateAndroidToIOS({
     upsertManifestRecord(mDb, chatDesc);
   }
 
+  if (typeof manifestDb === 'string' && mDb) {
+    try { mDb.close(); } catch (_) {}
+  }
+
   onProgress({ step: 'COMPLETE', percent: 100, message: 'Миграция на iPhone успешно завершена!' });
 
   return {
@@ -127,6 +147,8 @@ function migrateAndroidToIOS({
     chatsCount: sessions.length,
     messagesCount: exportRes.messagesCount,
     deduplicatedCount: totalDeduplicated,
+    mediaCount: mediaStats.mediaCount,
+    mediaBytesTransferred: mediaStats.totalBytes,
     durationMs: Date.now() - startTime
   };
 }
@@ -144,6 +166,7 @@ function migrateAndroidToIOS({
 function migrateIOSToAndroid({
   iosDb,
   targetAndroidDb,
+  iosBackupDir = null,
   androidDdlPath = null,
   outputZipPath = null,
   onProgress = () => {}
@@ -170,6 +193,13 @@ function migrateIOSToAndroid({
   onProgress({ step: 'CONVERT', percent: 60, message: 'Запись диалогов в реляционную схему Android...' });
   const exportRes = exportUIMToAndroid(sessions, targetAndroidDb, androidDdlPath);
 
+  // Шаг 3.5: Извлечение медиавложений из бэкапа iTunes
+  let mediaFiles = [];
+  if (iosBackupDir && fs.existsSync(iosBackupDir)) {
+    onProgress({ step: 'MEDIA', percent: 75, message: 'Извлечение медиавложений из бэкапа iTunes...' });
+    mediaFiles = extractMediaFromIOSBackup({ sessions, backupDir: iosBackupDir });
+  }
+
   // Шаг 4: Упаковка в viber_backup.zip (если указан путь)
   let generatedZipPath = null;
   if (outputZipPath) {
@@ -186,7 +216,7 @@ function migrateIOSToAndroid({
     const zipBuffer = packViberBackupZip({
       viberDataDb: targetBuffer,
       viberMessagesDb: targetBuffer,
-      mediaFiles: []
+      mediaFiles
     });
 
     fs.writeFileSync(outputZipPath, zipBuffer);
@@ -201,6 +231,7 @@ function migrateIOSToAndroid({
     chatsCount: sessions.length,
     messagesCount: exportRes.messagesCount,
     deduplicatedCount: totalDeduplicated,
+    mediaCount: mediaFiles.length,
     zipPath: generatedZipPath,
     durationMs: Date.now() - startTime
   };
