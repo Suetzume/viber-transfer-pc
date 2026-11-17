@@ -155,6 +155,27 @@
       box-shadow: 0 0 12px var(--accent-glow);
     }
 
+    .lang-switch-btn {
+      background: #191c28;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .lang-switch-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
     /* Stepper Header */
     .stepper {
       display: flex;
@@ -666,9 +687,13 @@
         </div>
       </div>
       <div class="server-status">
+        <button class="lang-switch-btn" id="langSwitchBtn" onclick="toggleLanguage()" title="Switch Language / Переключить язык">
+          <span>🌐</span>
+          <span id="currentLangLabel">RU</span>
+        </button>
         <button class="refresh-devices-btn" id="refreshBtn" onclick="refreshHardwareDevices()" title="Повторно сканировать USB-устройства и бэкапы">🔄 Сканировать устройства</button>
         <span class="api-badge" id="apiBadge">Бридж-сервер: В сети</span>
-        <span class="version-tag">v3.0.0 • Final Enterprise Release</span>
+        <span class="version-tag">v3.1.0 • Final Enterprise Release</span>
       </div>
     </header>
 
@@ -684,15 +709,15 @@
     <div class="stepper">
       <div class="step-item active" id="stepIndicator1">
         <div class="step-number">1</div>
-        <span>Источник: Android</span>
+        <span id="stepIndicator1Text">Источник: Android</span>
       </div>
       <div class="step-item" id="stepIndicator2">
         <div class="step-number">2</div>
-        <span>Приемник: iPhone</span>
+        <span id="stepIndicator2Text">Приемник: iPhone</span>
       </div>
       <div class="step-item" id="stepIndicator3">
         <div class="step-number">3</div>
-        <span>Перенос данных</span>
+        <span id="stepIndicator3Text">Перенос данных</span>
       </div>
     </div>
 
@@ -727,8 +752,8 @@
 
         <!-- Desktop Sync Assistant Box -->
         <div class="instructions-box" id="desktopSyncAssistantBox" style="background: rgba(115, 96, 242, 0.08); border-color: rgba(115, 96, 242, 0.35);">
-          <strong style="color: var(--accent); font-size: 14px;">⚡ Быстрое получение переписки с телефона без проводов и root:</strong>
-          <p style="margin: 6px 0 10px 0; font-size: 13px; color: var(--text);">
+          <strong id="fastSyncTitle" style="color: var(--accent); font-size: 14px;">⚡ Быстрое получение переписки с телефона без проводов и root:</strong>
+          <p id="fastSyncDesc" style="margin: 6px 0 10px 0; font-size: 13px; color: var(--text);">
             Поскольку Android 16 не позволяет напрямую скопировать базу данных мессенджера по USB-кабелю, самый надежный и быстрый способ — официальная синхронизация с Viber на ПК:
           </p>
           <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
@@ -738,18 +763,18 @@
             <span id="launchViberStatus" style="font-size: 12px; color: var(--text-muted);"></span>
           </div>
           <ol style="margin-left: 20px; font-size: 13px; line-height: 1.6;">
-            <li>Нажмите фиолетовую кнопку выше (программа запустит Viber или его установщик <code>ViberSetup.exe</code>).</li>
-            <li>На экране телефона откройте Viber: <strong>Еще ➔ значок QR-кода</strong> (в правом верхнем углу).</li>
-            <li>Наведите камеру смартфона на экран ПК и нажмите <strong>«Синхронизировать»</strong> на телефоне.</li>
-            <li><strong>Готово!</strong> Наша программа в реальном времени сама подхватит загруженные чаты.</li>
+            <li id="viberStep1">Нажмите фиолетовую кнопку выше (программа запустит Viber или его установщик <code>ViberSetup.exe</code>).</li>
+            <li id="viberStep2">На экране телефона откройте Viber: <strong>Еще ➔ значок QR-кода</strong> (в правом верхнем углу).</li>
+            <li id="viberStep3">Наведите камеру смартфона на экран ПК и нажмите <strong>«Синхронизировать»</strong> на телефоне.</li>
+            <li id="viberStep4"><strong>Готово!</strong> Наша программа в реальном времени сама подхватит загруженные чаты.</li>
           </ol>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <button class="browse-btn" style="justify-content: center; padding: 12px;" onclick="switchSourceTab('desktop')">
+          <button class="browse-btn" id="goToDesktopBtn" style="justify-content: center; padding: 12px;" onclick="switchSourceTab('desktop')">
             💻 Перейти к Viber Desktop (ПК)
           </button>
-          <button class="browse-btn" style="justify-content: center; padding: 12px;" onclick="switchSourceTab('zip')">
+          <button class="browse-btn" id="goToZipBtn" style="justify-content: center; padding: 12px;" onclick="switchSourceTab('zip')">
             ☁️ Указать архив Google Drive (zip)
           </button>
         </div>
@@ -766,17 +791,17 @@
           <button class="browse-btn" id="launchViberDesktopTabBtn" onclick="launchViberDesktopApp()">
             🚀 Открыть Viber Desktop
           </button>
-          <button class="browse-btn" onclick="checkDesktopNow()">
+          <button class="browse-btn" id="checkSyncBtn" onclick="checkDesktopNow()">
             🔄 Проверить синхронизацию сейчас
           </button>
           <span id="desktopSyncStatusText" style="font-size: 12px; color: var(--text-muted);"></span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 12px; color: var(--text-muted);">Путь к файлу базы данных viber.db:</label>
+          <label id="dbPathLabel" style="font-size: 12px; color: var(--text-muted);">Путь к файлу базы данных viber.db:</label>
           <div class="input-group">
             <input type="text" class="path-input" id="viberDbInput" placeholder="C:\Users\...\AppData\Roaming\ViberPC\...\viber.db" oninput="updateSummary()">
-            <button class="browse-btn" onclick="browseFile('db')">📁 Выбрать файл...</button>
+            <button class="browse-btn" id="chooseDbBtn" onclick="browseFile('db')">📁 Выбрать файл...</button>
           </div>
         </div>
       </div>
@@ -784,19 +809,19 @@
       <!-- Tab Content: Google Drive ZIP -->
       <div id="tabContentZip" style="display: none; flex-direction: column; gap: 12px;">
         <div class="instructions-box">
-          <strong>Как выгрузить архив чатов из Viber на смартфоне:</strong>
+          <strong id="zipGuideTitle">Как выгрузить архив чатов из Viber на смартфоне:</strong>
           <ol>
-            <li>Откройте Viber на телефоне: <strong>Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование</strong>.</li>
-            <li>Нажмите <strong>«Создать копию»</strong> (архив сохранится на вашем Google Диске).</li>
-            <li>Скачайте файл <code>viber_backup.zip</code> на этот компьютер и выберите его ниже.</li>
+            <li id="zipStep1">Откройте Viber на телефоне: <strong>Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование</strong>.</li>
+            <li id="zipStep2">Нажмите <strong>«Создать копию»</strong> (архив сохранится на вашем Google Диске).</li>
+            <li id="zipStep3">Скачайте файл <code>viber_backup.zip</code> на этот компьютер и выберите его ниже.</li>
           </ol>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 12px; color: var(--text-muted);">Путь к файлу архива viber_backup.zip:</label>
+          <label id="zipPathLabel" style="font-size: 12px; color: var(--text-muted);">Путь к файлу архива viber_backup.zip:</label>
           <div class="input-group">
             <input type="text" class="path-input" id="viberZipInput" placeholder="C:\Users\...\Downloads\viber_backup.zip" oninput="updateSummary()">
-            <button class="browse-btn" onclick="browseFile('zip')">📁 Выбрать архив...</button>
+            <button class="browse-btn" id="chooseZipBtn" onclick="browseFile('zip')">📁 Выбрать архив...</button>
           </div>
         </div>
       </div>
@@ -805,7 +830,7 @@
       <div id="tabContentDemo" style="display: none; flex-direction: column; gap: 12px;">
         <div class="alert-banner warning">
           <div>⚠️</div>
-          <div>
+          <div id="demoNotice">
             <strong>Режим демонстрационного тестирования:</strong> в этом режиме перенос будет выполнен на синтетической базе из 3 тестовых диалогов для демонстрации скорости и валидации схем без использования реальных баз.
           </div>
         </div>
@@ -814,7 +839,7 @@
 
     <!-- iOS Source Block (for reverse migration iPhone -> Android) -->
     <div id="iosSourceBlock" style="display: none; flex-direction: column; gap: 12px; margin-top: 12px;">
-      <div class="alert-banner info">
+      <div class="alert-banner info" id="iosSourceBanner">
         <div>🍏</div>
         <div>
           <strong>Реверс-миграция: перенос с iPhone на Android:</strong><br>
@@ -822,13 +847,13 @@
         </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 6px;">
-        <label style="font-size: 12px; color: var(--text-muted);">Папка бэкапа iTunes или файл Chat.data:</label>
+        <label id="iosSourcePathLabel" style="font-size: 12px; color: var(--text-muted);">Папка бэкапа iTunes или файл Chat.data:</label>
         <div class="input-group">
           <input type="text" class="path-input" id="sourceIosBackupInput" placeholder="C:\Users\...\Apple Computer\MobileSync\Backup\<UDID>" oninput="updateSummary()">
           <button class="browse-btn" id="browseIosSourceBtn" onclick="browseIosSource()">📁 Выбрать бэкап iPhone...</button>
         </div>
         <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
-          <button type="button" class="browse-btn" style="font-size: 11px; padding: 4px 10px;" onclick="useDefaultAppleBackupFolderForSource()">⚡ Использовать стандартную папку MobileSync</button>
+          <button type="button" class="browse-btn" id="useDefaultMobileSyncSourceBtn" style="font-size: 11px; padding: 4px 10px;" onclick="useDefaultAppleBackupFolderForSource()">⚡ Использовать стандартную папку MobileSync</button>
         </div>
       </div>
     </div>
@@ -853,24 +878,24 @@
 
       <!-- iOS Instructions -->
       <div class="instructions-box" id="iosInstructionsBox">
-        <strong>Пошаговая подготовка iPhone к приему данных:</strong>
+        <strong id="iosGuideTitle">Пошаговая подготовка iPhone к приему данных:</strong>
         <ol>
-          <li>Подключите iPhone кабелем к компьютеру и на экране телефона нажмите <strong>«Доверять этому компьютеру»</strong>.</li>
-          <li>Откройте iTunes (или «Устройства Apple») и нажмите <strong>«Создать резервную копию сейчас»</strong> на этот компьютер.</li>
-          <li><strong>КРИТИЧЕСКИ ВАЖНО:</strong> Снимите галочку <em>«Зашифровать локальную копию»</em> (бэкап не должен иметь пароль).</li>
-          <li>После завершения бэкапа нажмите кнопку <strong>«🔄 Сканировать устройства»</strong> вверху страницы.</li>
+          <li id="iosStep1">Подключите iPhone кабелем к компьютеру и на экране телефона нажмите <strong>«Доверять этому компьютеру»</strong>.</li>
+          <li id="iosStep2">Откройте iTunes (или «Устройства Apple») и нажмите <strong>«Создать резервную копию сейчас»</strong> на этот компьютер.</li>
+          <li id="iosStep3"><strong>КРИТИЧЕСКИ ВАЖНО:</strong> Снимите галочку <em>«Зашифровать локальную копию»</em> (бэкап не должен иметь пароль).</li>
+          <li id="iosStep4">После завершения бэкапа нажмите кнопку <strong>«🔄 Сканировать устройства»</strong> вверху страницы.</li>
         </ol>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 6px;">
-        <label style="font-size: 12px; color: var(--text-muted);">Папка резервной копии iTunes MobileSync:</label>
+        <label id="targetBackupPathLabel" style="font-size: 12px; color: var(--text-muted);">Папка резервной копии iTunes MobileSync:</label>
         <div class="input-group">
           <input type="text" class="path-input" id="targetBackupInput" placeholder="C:\Users\...\Apple Computer\MobileSync\Backup\<UDID>" oninput="onTargetBackupInput()">
           <button class="browse-btn" id="browseFolderBtn" onclick="browseFolder()">📁 Выбрать папку бэкапа...</button>
         </div>
         <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
-          <button type="button" class="browse-btn" style="font-size: 11px; padding: 4px 10px;" onclick="useDefaultAppleBackupFolder()">⚡ Вставить стандартную папку MobileSync</button>
-          <button type="button" class="browse-btn" style="font-size: 11px; padding: 4px 10px;" onclick="validateCurrentTargetBackup()">🛡️ Проверить бэкап на шифрование</button>
+          <button type="button" class="browse-btn" id="pasteDefaultBackupFolderBtn" style="font-size: 11px; padding: 4px 10px;" onclick="useDefaultAppleBackupFolder()">⚡ Вставить стандартную папку MobileSync</button>
+          <button type="button" class="browse-btn" id="checkEncryptionBtn" style="font-size: 11px; padding: 4px 10px;" onclick="validateCurrentTargetBackup()">🛡️ Проверить бэкап на шифрование</button>
           <span style="font-size: 11px; color: var(--warning);" id="browseFolderHint"></span>
         </div>
         <!-- Target Validation Message Box -->
@@ -880,7 +905,7 @@
 
     <!-- Android Target Block (for reverse migration iPhone -> Android) -->
     <div id="androidTargetBlock" style="display: none; flex-direction: column; gap: 12px;">
-      <div class="alert-banner ok">
+      <div class="alert-banner ok" id="androidTargetBanner">
         <div>📱</div>
         <div>
           <strong>Целевой архив для Android:</strong><br>
@@ -888,18 +913,18 @@
         </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 6px;">
-        <label style="font-size: 12px; color: var(--text-muted);">Путь сохранения архива viber_backup.zip:</label>
+        <label id="androidTargetPathLabel" style="font-size: 12px; color: var(--text-muted);">Путь сохранения архива viber_backup.zip:</label>
         <div class="input-group">
           <input type="text" class="path-input" id="targetAndroidZipInput" placeholder="C:\Users\...\Downloads\viber_backup.zip" oninput="updateSummary()">
           <button class="browse-btn" id="browseAndroidZipBtn" onclick="browseAndroidZipTarget()">📁 Выбрать папку...</button>
         </div>
       </div>
       <div class="instructions-box">
-        <strong>Инструкция восстановления на Android:</strong>
+        <strong id="androidRestoreGuideTitle">Инструкция восстановления на Android:</strong>
         <ol>
-          <li>После завершения миграции скопируйте созданный файл <code>viber_backup.zip</code> на Android в папку Загрузки (или в Google Drive).</li>
-          <li>Откройте Viber на Android ➔ Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование ➔ Восстановить.</li>
-          <li>Все ваши диалоги, история и фото будут восстановлены!</li>
+          <li id="androidRestoreStep1">После завершения миграции скопируйте созданный файл <code>viber_backup.zip</code> на Android в папку Загрузки (или в Google Drive).</li>
+          <li id="androidRestoreStep2">Откройте Viber на Android ➔ Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование ➔ Восстановить.</li>
+          <li id="androidRestoreStep3">Все ваши диалоги, история и фото будут восстановлены!</li>
         </ol>
       </div>
     </div>
@@ -909,23 +934,23 @@
     <div class="step-section" id="stepSection3">
       <div class="step-header">
         <div class="step-title">
-          <span>Шаг 3: Проверка параметров и запуск миграции</span>
+          <span id="step3Title">Шаг 3: Проверка параметров и запуск миграции</span>
         </div>
       </div>
 
       <!-- Summary Card -->
       <div class="summary-card">
         <div class="summary-pair">
-          <span class="summary-label">Источник данных:</span>
+          <span class="summary-label" id="summarySourceLabel">Источник данных:</span>
           <span class="summary-value" id="summarySource">Не выбран</span>
         </div>
         <div style="font-size: 20px; color: var(--text-muted);">➔</div>
         <div class="summary-pair">
-          <span class="summary-label">Целевой приемник:</span>
+          <span class="summary-label" id="summaryTargetLabel">Целевой приемник:</span>
           <span class="summary-value" id="summaryTarget">Apple iPhone (iTunes Backup)</span>
         </div>
         <div class="summary-pair">
-          <span class="summary-label">Режим переноса:</span>
+          <span class="summary-label" id="summaryModeLabel">Режим переноса:</span>
           <span class="summary-value" id="summaryMode" style="color: var(--accent);">Реальный перенос</span>
         </div>
       </div>
@@ -933,7 +958,7 @@
       <!-- Action Panel -->
       <div class="action-panel" id="actionPanel">
         <button class="start-btn" id="startBtn" onclick="startMigration()">
-          <span>Начать перенос данных</span>
+          <span id="startBtnText">Начать перенос данных</span>
           <span>→</span>
         </button>
         <span id="startBtnHint" style="font-size: 12px; color: var(--text-muted);"></span>
@@ -951,23 +976,23 @@
 
         <div class="stats-row">
           <div class="stat-box">
-            <div class="stat-label">Диалогов</div>
+            <div class="stat-label" id="statChatsLabel">Диалогов</div>
             <div class="stat-value" id="statChats">0</div>
           </div>
           <div class="stat-box">
-            <div class="stat-label">Сообщений</div>
+            <div class="stat-label" id="statMsgsLabel">Сообщений</div>
             <div class="stat-value" id="statMsgs">0</div>
           </div>
           <div class="stat-box">
-            <div class="stat-label">Вложений (Медиа)</div>
+            <div class="stat-label" id="statMediaLabel">Вложений (Медиа)</div>
             <div class="stat-value" id="statMedia">0</div>
           </div>
           <div class="stat-box">
-            <div class="stat-label">Дубликатов снято</div>
+            <div class="stat-label" id="statDeduplicatedLabel">Дубликатов снято</div>
             <div class="stat-value" id="statDeduplicated">0</div>
           </div>
           <div class="stat-box">
-            <div class="stat-label">Время выполнения</div>
+            <div class="stat-label" id="statDurationLabel">Время выполнения</div>
             <div class="stat-value" id="statDuration">0 ms</div>
           </div>
         </div>
@@ -978,7 +1003,7 @@
       <!-- Success Card -->
       <div class="success-card" id="successCard">
         <div class="success-icon">✓</div>
-        <h3>Миграция успешно завершена!</h3>
+        <h3 id="successCardH3">Миграция успешно завершена!</h3>
         <p id="successDesc">Все сообщения и вложения успешно конвертированы и зарегистрированы в целевой резервной копии.</p>
 
         <div style="margin: 12px 0;">
@@ -990,21 +1015,452 @@
         <div class="alert-banner info" style="text-align: left; max-width: 580px;">
           <div>📱</div>
           <div>
-            <strong>Финальный пошаговый мастер восстановления на iPhone:</strong><br>
+            <strong id="restoreGuideHeader">Финальный пошаговый мастер восстановления на iPhone:</strong><br>
             <ol style="margin: 6px 0 0 16px; padding: 0; line-height: 1.6;">
-              <li><strong>Отключите «Локатор»:</strong> В настройках iPhone откройте <em>[Ваше имя] ➔ Локатор ➔ Найти iPhone ➔ Выключить</em> (потребуется пароль Apple ID).</li>
-              <li><strong>Подключите iPhone к ПК:</strong> Соедините телефон кабелем USB с компьютером и запустите <em>iTunes</em> (или <em>«Устройства Apple»</em>).</li>
-              <li><strong>Восстановите резервную копию:</strong> Нажмите <strong>«Восстановить из копии...»</strong> и выберите наш обновленный бэкап.</li>
-              <li><strong>Готово:</strong> После перезагрузки телефона откройте Viber — все чаты, сообщения и медиа будут на месте! После этого включите «Локатор» обратно.</li>
+              <li id="restoreStep1"><strong>Отключите «Локатор»:</strong> В настройках iPhone откройте <em>[Ваше имя] ➔ Локатор ➔ Найти iPhone ➔ Выключить</em> (потребуется пароль Apple ID).</li>
+              <li id="restoreStep2"><strong>Подключите iPhone к ПК:</strong> Соедините телефон кабелем USB с компьютером и запустите <em>iTunes</em> (или <em>«Устройства Apple»</em>).</li>
+              <li id="restoreStep3"><strong>Восстановите резервную копию:</strong> Нажмите <strong>«Восстановить из копии...»</strong> и выберите наш обновленный бэкап.</li>
+              <li id="restoreStep4"><strong>Готово:</strong> После перезагрузки телефона откройте Viber — все чаты, сообщения и медиа будут на месте! После этого включите «Локатор» обратно.</li>
             </ol>
           </div>
         </div>
-        <button class="reset-btn" onclick="resetUI()">Выполнить новый перенос</button>
+        <button class="reset-btn" id="resetBtn" onclick="resetUI()">Выполнить новый перенос</button>
       </div>
     </div>
   </div>
 
   <script>
+    let currentLang = localStorage.getItem('viber_transfer_lang') || 'ru';
+
+    const I18N = {
+      ru: {
+        brandTitle: 'Viber Transfer PC Bridge',
+        brandSubtitle: 'Автоматизированная миграция данных Android ➔ iPhone',
+        scanDevicesBtn: '🔄 Сканировать устройства',
+        scanDevicesActive: '⌛ Опрос USB...',
+        serverOnline: 'Бридж-сервер: В сети (Online)',
+        serverOffline: 'Сервер офлайн',
+        versionTag: 'v3.1.0 • Final Enterprise Release',
+
+        directionAndroidToIos: 'Направление: Android ➔ iPhone',
+        directionIosToAndroid: 'Направление: iPhone ➔ Android (Реверс)',
+
+        step1Android: 'Источник: Android',
+        step1Ios: 'Источник: iPhone',
+        step2Ios: 'Приемник: iPhone',
+        step2Android: 'Приемник: Android',
+        step3Transfer: 'Перенос данных',
+
+        step1TitleAndroid: 'Шаг 1: Выберите источник переписки Viber (Android)',
+        step1TitleIos: 'Шаг 1: Выберите источник переписки Viber (iPhone)',
+        statusSearching: 'Поиск устройств...',
+        tabUsb: '📱 USB Смартфон',
+        tabDesktop: '💻 Viber Desktop (ПК)',
+        tabZip: '☁️ Архив Google Drive',
+        tabDemo: '🧪 Тестовый макет',
+
+        phoneNotFound: '📱 Телефон не обнаружен',
+        connectViaUsb: 'Подключите смартфон кабелем USB с включенной отладкой',
+        notConnected: 'Не подключен',
+        authorized: 'Авторизован ✓',
+        waitingRsa: 'Ожидание RSA',
+        fastSyncTitle: '⚡ Быстрое получение переписки с телефона без проводов и root:',
+        fastSyncDesc: 'Поскольку современный Android блокирует прямое чтение базы данных по кабелю без root, самый быстрый и безопасный способ — официальная синхронизация с Viber на ПК:',
+        launchViberBtn: '🚀 Запустить Viber Desktop на этом ПК',
+        viberStep1: 'Нажмите фиолетовую кнопку выше (программа запустит Viber или его установщик <code>ViberSetup.exe</code>).',
+        viberStep2: 'На экране телефона откройте Viber: <strong>Еще ➔ значок QR-кода</strong> (в правом верхнем углу).',
+        viberStep3: 'Наведите камеру смартфона на экран ПК и нажмите <strong>«Синхронизировать»</strong> на телефоне.',
+        viberStep4: '<strong>Готово!</strong> Наша программа в реальном времени сама подхватит загруженные чаты.',
+        goToDesktopTabBtn: '💻 Перейти к Viber Desktop (ПК)',
+        goToZipTabBtn: '☁️ Указать архив Google Drive (zip)',
+
+        desktopFoundBanner: 'База данных Viber Desktop найдена на этом компьютере.',
+        openViberDesktopBtn: '🚀 Открыть Viber Desktop',
+        checkSyncNowBtn: '🔄 Проверить синхронизацию сейчас',
+        dbPathLabel: 'Путь к файлу базы данных viber.db:',
+        chooseDbFileBtn: '📁 Выбрать файл...',
+
+        zipGuideTitle: 'Как выгрузить архив чатов из Viber на смартфоне:',
+        zipStep1: 'Откройте Viber на телефоне: <strong>Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование</strong>.',
+        zipStep2: 'Нажмите <strong>«Создать копию»</strong> (архив сохранится на вашем Google Диске).',
+        zipStep3: 'Скачайте файл <code>viber_backup.zip</code> на этот компьютер и выберите его ниже.',
+        zipPathLabel: 'Путь к файлу архива viber_backup.zip:',
+        chooseZipBtn: '📁 Выбрать архив...',
+
+        demoNotice: '<strong>Режим демонстрационного тестирования:</strong> в этом режиме перенос будет выполнен на синтетической базе из 3 тестовых диалогов для демонстрации скорости и валидации схем без использования реальных баз.',
+
+        iosSourceBanner: '<strong>Реверс-миграция: перенос с iPhone на Android:</strong><br>Укажите папку локальной резервной копии iTunes MobileSync или файл <code>Chat.data</code>.',
+        iosSourcePathLabel: 'Папка бэкапа iTunes или файл Chat.data:',
+        chooseIosSourceBtn: '📁 Выбрать бэкап iPhone...',
+        useDefaultMobileSyncBtn: '⚡ Использовать стандартную папку MobileSync',
+
+        step2TitleIos: 'Шаг 2: Приемник — Apple iPhone (iTunes / MobileSync)',
+        step2TitleAndroid: 'Шаг 2: Приемник — Android (viber_backup.zip)',
+        waitingBackup: 'Ожидание бэкапа',
+        checkingAppleServices: 'Проверка установленных служб Apple на компьютере...',
+        appleServicesReady: 'Службы Apple активны на ПК. Создайте локальную копию iPhone в iTunes (без пароля).',
+        appleServicesNotFound: 'iTunes не найден на компьютере. <a href="https://apps.microsoft.com/detail/9np83lwlpz9k" target="_blank" style="color: inherit; font-weight: 600; text-decoration: underline;">Установите «Устройства Apple» из Microsoft Store</a> или iTunes.',
+        backupReady: 'Бэкап готов ✓',
+        iosGuideTitle: 'Пошаговая подготовка iPhone к приему данных:',
+        iosStep1: 'Подключите iPhone кабелем к компьютеру и на экране телефона нажмите <strong>«Доверять этому компьютеру»</strong>.',
+        iosStep2: 'Откройте iTunes (или «Устройства Apple») и нажмите <strong>«Создать резервную копию сейчас»</strong> на этот компьютер.',
+        iosStep3: '<strong>КРИТИЧЕСКИ ВАЖНО:</strong> Снимите галочку <em>«Зашифровать локальную копию»</em> (бэкап не должен иметь пароль).',
+        iosStep4: 'После завершения бэкапа нажмите кнопку <strong>«🔄 Сканировать устройства»</strong> вверху страницы.',
+        targetBackupPathLabel: 'Папка резервной копии iTunes MobileSync:',
+        chooseBackupFolderBtn: '📁 Выбрать папку бэкапа...',
+        pasteDefaultBackupFolderBtn: '⚡ Вставить стандартную папку MobileSync',
+        checkEncryptionBtn: '🛡️ Проверить бэкап на шифрование',
+
+        androidTargetBanner: '<strong>Целевой архив для Android:</strong><br>Программа сконвертирует сообщения и медиавложения в официальный архив <code>viber_backup.zip</code>, совместимый со стандартным восстановлением Viber.',
+        androidTargetPathLabel: 'Путь сохранения архива viber_backup.zip:',
+        chooseAndroidZipBtn: '📁 Выбрать папку...',
+        androidRestoreGuideTitle: 'Инструкция восстановления на Android:',
+        androidRestoreStep1: 'После завершения миграции скопируйте созданный файл <code>viber_backup.zip</code> на Android в папку Загрузки (или в Google Drive).',
+        androidRestoreStep2: 'Откройте Viber на Android ➔ Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование ➔ Восстановить.',
+        androidRestoreStep3: 'Все ваши диалоги, история и фото будут восстановлены!',
+
+        step3Title: 'Шаг 3: Проверка параметров и запуск миграции',
+        summarySourceLabel: 'Источник данных:',
+        summaryTargetLabel: 'Целевой приемник:',
+        summaryModeLabel: 'Режим переноса:',
+        summaryNotSelected: 'Не выбран',
+        summaryRealMode: 'Реальный перенос (Zero Data Loss)',
+        summaryDemoMode: 'Тестовый макет (Демо)',
+        startMigrationBtn: 'Начать перенос данных',
+        startHintReadyIos: 'Готов к реальному внедрению чатов в бэкап iPhone',
+        startHintConvertOnly: 'Будет выполнена конвертация базы без модификации iPhone',
+        startHintSelectSource: 'Для запуска выберите базу Viber Desktop, архив Google Drive или демо-макет на Шаге 1',
+        startHintReverseReady: 'Готов к реверс-миграции на Android (упаковка в viber_backup.zip)',
+        startHintReverseSelect: 'Укажите папку бэкапа iPhone или базу Chat.data на Шаге 1',
+
+        statChats: 'Диалогов',
+        statMsgs: 'Сообщений',
+        statMedia: 'Вложений (Медиа)',
+        statDeduplicated: 'Дубликатов снято',
+        statDuration: 'Время выполнения',
+
+        successTitle: 'Миграция успешно завершена!',
+        openBackupFolderBtn: '📂 Открыть папку бэкапа в Проводнике',
+        restoreGuideHeader: 'Финальный пошаговый мастер восстановления на iPhone:',
+        restoreStep1: '<strong>Отключите «Локатор»:</strong> В настройках iPhone откройте <em>[Ваше имя] ➔ Локатор ➔ Найти iPhone ➔ Выключить</em> (потребуется пароль Apple ID).',
+        restoreStep2: '<strong>Подключите iPhone к ПК:</strong> Соедините телефон кабелем USB с компьютером и запустите <em>iTunes</em> (или <em>«Устройства Apple»</em>).',
+        restoreStep3: '<strong>Восстановите резервную копию:</strong> Нажмите <strong>«Восстановить из копии...»</strong> и выберите наш обновленный бэкап.',
+        restoreStep4: '<strong>Готово:</strong> После перезагрузки телефона откройте Viber — все чаты, сообщения и медиа будут на месте! После этого включите «Локатор» обратно.',
+        resetBtn: 'Выполнить новый перенос'
+      },
+      en: {
+        brandTitle: 'Viber Transfer PC Bridge',
+        brandSubtitle: 'Automated Cross-Platform Chat Migration Android ➔ iPhone',
+        scanDevicesBtn: '🔄 Scan Devices',
+        scanDevicesActive: '⌛ Scanning USB...',
+        serverOnline: 'Bridge Server: Online',
+        serverOffline: 'Server Offline',
+        versionTag: 'v3.1.0 • Final Enterprise Release',
+
+        directionAndroidToIos: 'Direction: Android ➔ iPhone',
+        directionIosToAndroid: 'Direction: iPhone ➔ Android (Reverse)',
+
+        step1Android: 'Source: Android',
+        step1Ios: 'Source: iPhone',
+        step2Ios: 'Target: iPhone',
+        step2Android: 'Target: Android',
+        step3Transfer: 'Data Transfer',
+
+        step1TitleAndroid: 'Step 1: Select Viber Source (Android)',
+        step1TitleIos: 'Step 1: Select Viber Source (iPhone)',
+        statusSearching: 'Scanning devices...',
+        tabUsb: '📱 USB Smartphone',
+        tabDesktop: '💻 Viber Desktop (PC)',
+        tabZip: '☁️ Google Drive Archive',
+        tabDemo: '🧪 Test Demo',
+
+        phoneNotFound: '📱 Phone not detected',
+        connectViaUsb: 'Connect smartphone via USB cable with USB debugging enabled',
+        notConnected: 'Not connected',
+        authorized: 'Authorized ✓',
+        waitingRsa: 'Waiting for RSA prompt',
+        fastSyncTitle: '⚡ Fast Wireless & No-Root Viber Chat Extraction:',
+        fastSyncDesc: 'Because modern Android prohibits direct database extraction over USB without root, the official and fastest method is official Viber synchronization via PC:',
+        launchViberBtn: '🚀 Launch Viber Desktop on this PC',
+        viberStep1: 'Click the purple button above (it will start Viber or its installer <code>ViberSetup.exe</code>).',
+        viberStep2: 'On your phone open Viber: <strong>More ➔ QR Code icon</strong> (top right corner).',
+        viberStep3: 'Point smartphone camera at PC screen and tap <strong>"Sync"</strong> on phone.',
+        viberStep4: '<strong>Done!</strong> Our software will automatically detect synchronized chats in real time.',
+        goToDesktopTabBtn: '💻 Go to Viber Desktop (PC)',
+        goToZipTabBtn: '☁️ Select Google Drive Archive (zip)',
+
+        desktopFoundBanner: 'Viber Desktop database found on this computer.',
+        openViberDesktopBtn: '🚀 Open Viber Desktop',
+        checkSyncNowBtn: '🔄 Check Synchronization Now',
+        dbPathLabel: 'Path to viber.db database file:',
+        chooseDbFileBtn: '📁 Choose file...',
+
+        zipGuideTitle: 'How to export chat archive from Viber on smartphone:',
+        zipStep1: 'Open Viber on phone: <strong>More ➔ Settings ➔ Account ➔ Viber Backup</strong>.',
+        zipStep2: 'Tap <strong>"Back Up Now"</strong> (archive will be saved to your Google Drive).',
+        zipStep3: 'Download <code>viber_backup.zip</code> to this computer and select it below.',
+        zipPathLabel: 'Path to viber_backup.zip archive:',
+        chooseZipBtn: '📁 Choose archive...',
+
+        demoNotice: '<strong>Demo testing mode:</strong> in this mode the migration runs on a synthetic database of 3 test chats to verify throughput, schemas, and pipeline validation without touching real databases.',
+
+        iosSourceBanner: '<strong>Reverse Migration: transfer from iPhone to Android:</strong><br>Specify iTunes MobileSync local backup folder or <code>Chat.data</code> file.',
+        iosSourcePathLabel: 'iTunes backup folder or Chat.data file:',
+        chooseIosSourceBtn: '📁 Choose iPhone Backup...',
+        useDefaultMobileSyncBtn: '⚡ Use Default MobileSync Folder',
+
+        step2TitleIos: 'Step 2: Target — Apple iPhone (iTunes / MobileSync)',
+        step2TitleAndroid: 'Step 2: Target — Android (viber_backup.zip)',
+        waitingBackup: 'Waiting for backup',
+        checkingAppleServices: 'Checking Apple services on computer...',
+        appleServicesReady: 'Apple services active on PC. Create an unencrypted iPhone backup in iTunes.',
+        appleServicesNotFound: 'iTunes not found on computer. <a href="https://apps.microsoft.com/detail/9np83lwlpz9k" target="_blank" style="color: inherit; font-weight: 600; text-decoration: underline;">Install "Apple Devices" from Microsoft Store</a> or iTunes.',
+        backupReady: 'Backup ready ✓',
+        iosGuideTitle: 'Step-by-step iPhone preparation for data import:',
+        iosStep1: 'Connect iPhone via USB cable to PC and tap <strong>"Trust This Computer"</strong> on phone.',
+        iosStep2: 'Open iTunes (or Apple Devices app) and click <strong>"Back Up Now"</strong> to This Computer.',
+        iosStep3: '<strong>CRITICAL:</strong> Uncheck <em>"Encrypt local backup"</em> (backup must NOT have a password).',
+        iosStep4: 'Once backup finishes, click <strong>"🔄 Scan Devices"</strong> at the top of the page.',
+        targetBackupPathLabel: 'iTunes MobileSync backup folder:',
+        chooseBackupFolderBtn: '📁 Choose Backup Folder...',
+        pasteDefaultBackupFolderBtn: '⚡ Insert Default MobileSync Folder',
+        checkEncryptionBtn: '🛡️ Verify Backup Encryption',
+
+        androidTargetBanner: '<strong>Target Android Archive:</strong><br>The program will convert messages and attachments into official <code>viber_backup.zip</code> compatible with standard Viber restore.',
+        androidTargetPathLabel: 'Save path for viber_backup.zip:',
+        chooseAndroidZipBtn: '📁 Choose Folder...',
+        androidRestoreGuideTitle: 'Restore Instructions for Android:',
+        androidRestoreStep1: 'After migration finishes, copy generated <code>viber_backup.zip</code> to Android Downloads folder (or Google Drive).',
+        androidRestoreStep2: 'Open Viber on Android ➔ More ➔ Settings ➔ Account ➔ Viber Backup ➔ Restore.',
+        androidRestoreStep3: 'All your chats, history, and media photos will be restored!',
+
+        step3Title: 'Step 3: Verify Settings and Start Migration',
+        summarySourceLabel: 'Data Source:',
+        summaryTargetLabel: 'Target Destination:',
+        summaryModeLabel: 'Migration Mode:',
+        summaryNotSelected: 'Not selected',
+        summaryRealMode: 'Real Transfer (Zero Data Loss)',
+        summaryDemoMode: 'Test Demo Mode',
+        startMigrationBtn: 'Start Data Migration',
+        startHintReadyIos: 'Ready to inject chats into iPhone backup',
+        startHintConvertOnly: 'Database will be converted without modifying iPhone backup',
+        startHintSelectSource: 'Please select Viber Desktop database, Google Drive archive, or demo mode at Step 1',
+        startHintReverseReady: 'Ready for reverse migration to Android (packaging into viber_backup.zip)',
+        startHintReverseSelect: 'Specify iPhone backup folder or Chat.data at Step 1',
+
+        statChats: 'Chats',
+        statMsgs: 'Messages',
+        statMedia: 'Media Attachments',
+        statDeduplicated: 'Deduplicated',
+        statDuration: 'Duration',
+
+        successTitle: 'Migration Completed Successfully!',
+        openBackupFolderBtn: '📂 Open Backup Folder in Explorer',
+        restoreGuideHeader: 'Final Step-by-Step iPhone Restore Guide:',
+        restoreStep1: '<strong>Turn off "Find My":</strong> On iPhone go to <em>Settings ➔ [Your Name] ➔ Find My ➔ Find My iPhone ➔ Turn Off</em> (Apple ID password required).',
+        restoreStep2: '<strong>Connect iPhone to PC:</strong> Connect phone via USB cable and launch <em>iTunes</em> (or <em>Apple Devices</em>).',
+        restoreStep3: '<strong>Restore Backup:</strong> Click <strong>"Restore Backup..."</strong> and choose our updated backup.',
+        restoreStep4: '<strong>Done:</strong> After phone reboots, open Viber — all chats, messages, and photos will be restored! Re-enable "Find My" afterwards.',
+        resetBtn: 'Perform New Migration'
+      }
+    };
+
+    function applyLanguage(lang) {
+      currentLang = (lang === 'en') ? 'en' : 'ru';
+      localStorage.setItem('viber_transfer_lang', currentLang);
+      const t = I18N[currentLang];
+      document.documentElement.lang = currentLang;
+
+      const currentLangLabel = document.getElementById('currentLangLabel');
+      if (currentLangLabel) currentLangLabel.innerText = currentLang.toUpperCase();
+
+      // Header & Brand
+      const brandP = document.querySelector('.brand p');
+      if (brandP) brandP.innerText = t.brandSubtitle;
+      const refreshBtn = document.getElementById('refreshBtn');
+      if (refreshBtn && !refreshBtn.innerText.includes('⌛')) refreshBtn.innerText = t.scanDevicesBtn;
+      const apiBadge = document.getElementById('apiBadge');
+      if (apiBadge) apiBadge.innerText = isServerOnline ? t.serverOnline : t.serverOffline;
+
+      // Direction
+      const dirText = document.getElementById('directionText');
+      if (dirText) {
+        dirText.innerText = (migrationDirection === 'android-to-ios') 
+          ? t.directionAndroidToIos 
+          : t.directionIosToAndroid;
+      }
+
+      // Stepper
+      const s1 = document.getElementById('stepIndicator1Text');
+      if (s1) s1.innerText = (migrationDirection === 'android-to-ios') ? t.step1Android : t.step1Ios;
+      const s2 = document.getElementById('stepIndicator2Text');
+      if (s2) s2.innerText = (migrationDirection === 'android-to-ios') ? t.step2Ios : t.step2Android;
+      const s3 = document.getElementById('stepIndicator3Text');
+      if (s3) s3.innerText = t.step3Transfer;
+
+      // Step 1
+      const step1Title = document.getElementById('step1Title');
+      if (step1Title) {
+        step1Title.innerText = (migrationDirection === 'android-to-ios') ? t.step1TitleAndroid : t.step1TitleIos;
+      }
+      const tabUsb = document.getElementById('tabBtnUsb');
+      if (tabUsb) tabUsb.innerText = t.tabUsb;
+      const tabDesk = document.getElementById('tabBtnDesktop');
+      if (tabDesk) tabDesk.innerText = t.tabDesktop;
+      const tabZip = document.getElementById('tabBtnZip');
+      if (tabZip) tabZip.innerText = t.tabZip;
+      const tabDemo = document.getElementById('tabBtnDemo');
+      if (tabDemo) tabDemo.innerText = t.tabDemo;
+
+      // USB content
+      const fastTitle = document.getElementById('fastSyncTitle');
+      if (fastTitle) fastTitle.innerHTML = t.fastSyncTitle;
+      const fastDesc = document.getElementById('fastSyncDesc');
+      if (fastDesc) fastDesc.innerHTML = t.fastSyncDesc;
+      const launchViberBtn = document.getElementById('launchViberBtn');
+      if (launchViberBtn && !launchViberBtn.innerText.includes('✓')) launchViberBtn.innerText = t.launchViberBtn;
+      const viberStep1El = document.getElementById('viberStep1');
+      if (viberStep1El) viberStep1El.innerHTML = t.viberStep1;
+      const viberStep2El = document.getElementById('viberStep2');
+      if (viberStep2El) viberStep2El.innerHTML = t.viberStep2;
+      const viberStep3El = document.getElementById('viberStep3');
+      if (viberStep3El) viberStep3El.innerHTML = t.viberStep3;
+      const viberStep4El = document.getElementById('viberStep4');
+      if (viberStep4El) viberStep4El.innerHTML = t.viberStep4;
+      const goToDesktopBtn = document.getElementById('goToDesktopBtn');
+      if (goToDesktopBtn) goToDesktopBtn.innerText = t.goToDesktopTabBtn;
+      const goToZipBtn = document.getElementById('goToZipBtn');
+      if (goToZipBtn) goToZipBtn.innerText = t.goToZipTabBtn;
+
+      // Desktop Tab
+      const launchDeskTab = document.getElementById('launchViberDesktopTabBtn');
+      if (launchDeskTab) launchDeskTab.innerText = t.openViberDesktopBtn;
+      const checkSyncBtn = document.getElementById('checkSyncBtn');
+      if (checkSyncBtn) checkSyncBtn.innerText = t.checkSyncNowBtn;
+      const dbPathLabel = document.getElementById('dbPathLabel');
+      if (dbPathLabel) dbPathLabel.innerText = t.dbPathLabel;
+      const chooseDbBtn = document.getElementById('chooseDbBtn');
+      if (chooseDbBtn) chooseDbBtn.innerText = t.chooseDbFileBtn;
+
+      // Zip Tab
+      const zipGuideTitle = document.getElementById('zipGuideTitle');
+      if (zipGuideTitle) zipGuideTitle.innerText = t.zipGuideTitle;
+      const zipStep1 = document.getElementById('zipStep1');
+      if (zipStep1) zipStep1.innerHTML = t.zipStep1;
+      const zipStep2 = document.getElementById('zipStep2');
+      if (zipStep2) zipStep2.innerHTML = t.zipStep2;
+      const zipStep3 = document.getElementById('zipStep3');
+      if (zipStep3) zipStep3.innerHTML = t.zipStep3;
+      const zipPathLabel = document.getElementById('zipPathLabel');
+      if (zipPathLabel) zipPathLabel.innerText = t.zipPathLabel;
+      const chooseZipBtn = document.getElementById('chooseZipBtn');
+      if (chooseZipBtn) chooseZipBtn.innerText = t.chooseZipBtn;
+
+      // Demo Tab
+      const demoNoticeEl = document.getElementById('demoNotice');
+      if (demoNoticeEl) demoNoticeEl.innerHTML = t.demoNotice;
+
+      // iOS Source Block (Reverse)
+      const iosSourceBanner = document.getElementById('iosSourceBanner');
+      if (iosSourceBanner) iosSourceBanner.innerHTML = t.iosSourceBanner;
+      const iosSourcePathLabel = document.getElementById('iosSourcePathLabel');
+      if (iosSourcePathLabel) iosSourcePathLabel.innerText = t.iosSourcePathLabel;
+      const browseIosSourceBtn = document.getElementById('browseIosSourceBtn');
+      if (browseIosSourceBtn) browseIosSourceBtn.innerText = t.chooseIosSourceBtn;
+      const useDefaultMobileSyncSourceBtn = document.getElementById('useDefaultMobileSyncSourceBtn');
+      if (useDefaultMobileSyncSourceBtn) useDefaultMobileSyncSourceBtn.innerText = t.useDefaultMobileSyncBtn;
+
+      // Step 2
+      const step2Title = document.getElementById('step2Title');
+      if (step2Title) {
+        step2Title.innerText = (migrationDirection === 'android-to-ios') ? t.step2TitleIos : t.step2TitleAndroid;
+      }
+      const iosGuideTitle = document.getElementById('iosGuideTitle');
+      if (iosGuideTitle) iosGuideTitle.innerText = t.iosGuideTitle;
+      const iosStep1 = document.getElementById('iosStep1');
+      if (iosStep1) iosStep1.innerHTML = t.iosStep1;
+      const iosStep2 = document.getElementById('iosStep2');
+      if (iosStep2) iosStep2.innerHTML = t.iosStep2;
+      const iosStep3 = document.getElementById('iosStep3');
+      if (iosStep3) iosStep3.innerHTML = t.iosStep3;
+      const iosStep4 = document.getElementById('iosStep4');
+      if (iosStep4) iosStep4.innerHTML = t.iosStep4;
+      const targetBackupPathLabel = document.getElementById('targetBackupPathLabel');
+      if (targetBackupPathLabel) targetBackupPathLabel.innerText = t.targetBackupPathLabel;
+      const browseFolderBtn = document.getElementById('browseFolderBtn');
+      if (browseFolderBtn) browseFolderBtn.innerText = t.chooseBackupFolderBtn;
+      const pasteDefaultBackupFolderBtn = document.getElementById('pasteDefaultBackupFolderBtn');
+      if (pasteDefaultBackupFolderBtn) pasteDefaultBackupFolderBtn.innerText = t.pasteDefaultBackupFolderBtn;
+      const checkEncryptionBtn = document.getElementById('checkEncryptionBtn');
+      if (checkEncryptionBtn) checkEncryptionBtn.innerText = t.checkEncryptionBtn;
+
+      // Android Target Block
+      const androidTargetBanner = document.getElementById('androidTargetBanner');
+      if (androidTargetBanner) androidTargetBanner.innerHTML = t.androidTargetBanner;
+      const androidTargetPathLabel = document.getElementById('androidTargetPathLabel');
+      if (androidTargetPathLabel) androidTargetPathLabel.innerText = t.androidTargetPathLabel;
+      const browseAndroidZipBtn = document.getElementById('browseAndroidZipBtn');
+      if (browseAndroidZipBtn) browseAndroidZipBtn.innerText = t.chooseAndroidZipBtn;
+      const androidRestoreGuideTitle = document.getElementById('androidRestoreGuideTitle');
+      if (androidRestoreGuideTitle) androidRestoreGuideTitle.innerText = t.androidRestoreGuideTitle;
+      const androidRestoreStep1 = document.getElementById('androidRestoreStep1');
+      if (androidRestoreStep1) androidRestoreStep1.innerHTML = t.androidRestoreStep1;
+      const androidRestoreStep2 = document.getElementById('androidRestoreStep2');
+      if (androidRestoreStep2) androidRestoreStep2.innerHTML = t.androidRestoreStep2;
+      const androidRestoreStep3 = document.getElementById('androidRestoreStep3');
+      if (androidRestoreStep3) androidRestoreStep3.innerHTML = t.androidRestoreStep3;
+
+      // Step 3
+      const step3Title = document.getElementById('step3Title');
+      if (step3Title) step3Title.innerText = t.step3Title;
+      const summarySourceLabel = document.getElementById('summarySourceLabel');
+      if (summarySourceLabel) summarySourceLabel.innerText = t.summarySourceLabel;
+      const summaryTargetLabel = document.getElementById('summaryTargetLabel');
+      if (summaryTargetLabel) summaryTargetLabel.innerText = t.summaryTargetLabel;
+      const summaryModeLabel = document.getElementById('summaryModeLabel');
+      if (summaryModeLabel) summaryModeLabel.innerText = t.summaryModeLabel;
+
+      const startBtnText = document.getElementById('startBtnText');
+      if (startBtnText) startBtnText.innerText = t.startMigrationBtn;
+
+      // Stats
+      const statChatsLabel = document.getElementById('statChatsLabel');
+      if (statChatsLabel) statChatsLabel.innerText = t.statChats;
+      const statMsgsLabel = document.getElementById('statMsgsLabel');
+      if (statMsgsLabel) statMsgsLabel.innerText = t.statMsgs;
+      const statMediaLabel = document.getElementById('statMediaLabel');
+      if (statMediaLabel) statMediaLabel.innerText = t.statMedia;
+      const statDeduplicatedLabel = document.getElementById('statDeduplicatedLabel');
+      if (statDeduplicatedLabel) statDeduplicatedLabel.innerText = t.statDeduplicated;
+      const statDurationLabel = document.getElementById('statDurationLabel');
+      if (statDurationLabel) statDurationLabel.innerText = t.statDuration;
+
+      // Success Card
+      const successCardH3 = document.getElementById('successCardH3');
+      if (successCardH3) successCardH3.innerText = t.successTitle;
+      const openBackupFolderBtn = document.getElementById('openBackupFolderBtn');
+      if (openBackupFolderBtn) openBackupFolderBtn.innerText = t.openBackupFolderBtn;
+      const restoreGuideHeader = document.getElementById('restoreGuideHeader');
+      if (restoreGuideHeader) restoreGuideHeader.innerText = t.restoreGuideHeader;
+      const restoreStep1 = document.getElementById('restoreStep1');
+      if (restoreStep1) restoreStep1.innerHTML = t.restoreStep1;
+      const restoreStep2 = document.getElementById('restoreStep2');
+      if (restoreStep2) restoreStep2.innerHTML = t.restoreStep2;
+      const restoreStep3 = document.getElementById('restoreStep3');
+      if (restoreStep3) restoreStep3.innerHTML = t.restoreStep3;
+      const restoreStep4 = document.getElementById('restoreStep4');
+      if (restoreStep4) restoreStep4.innerHTML = t.restoreStep4;
+      const resetBtn = document.getElementById('resetBtn');
+      if (resetBtn) resetBtn.innerText = t.resetBtn;
+
+      updateSummary();
+      if (systemDevices) renderDiagnostics();
+    }
+
+    function toggleLanguage() {
+      applyLanguage(currentLang === 'ru' ? 'en' : 'ru');
+    }
+
     let activeTab = 'usb';
     let isServerOnline = false;
     let systemDevices = null;
@@ -1420,35 +1876,17 @@
     function swapMigrationDirection() {
       migrationDirection = (migrationDirection === 'android-to-ios') ? 'ios-to-android' : 'android-to-ios';
       
-      const dirText = document.getElementById('directionText');
-      const step1Text = document.getElementById('stepIndicator1').children[1];
-      const step2Text = document.getElementById('stepIndicator2').children[1];
-      const step1Title = document.getElementById('step1Title');
-      const step2Title = document.getElementById('step2Title');
-
       const androidSrc = document.getElementById('androidSourceBlock');
       const iosSrc = document.getElementById('iosSourceBlock');
       const iosTarget = document.getElementById('iosTargetBlock');
       const androidTarget = document.getElementById('androidTargetBlock');
 
       if (migrationDirection === 'android-to-ios') {
-        dirText.innerText = 'Направление: Android ➔ iPhone';
-        step1Text.innerText = 'Источник: Android';
-        step2Text.innerText = 'Приемник: iPhone';
-        step1Title.innerText = 'Шаг 1: Выберите источник переписки Viber (Android)';
-        step2Title.innerText = 'Шаг 2: Приемник — Apple iPhone (iTunes / MobileSync)';
-
         androidSrc.style.display = 'block';
         iosSrc.style.display = 'none';
         iosTarget.style.display = 'block';
         androidTarget.style.display = 'none';
       } else {
-        dirText.innerText = 'Направление: iPhone ➔ Android';
-        step1Text.innerText = 'Источник: iPhone';
-        step2Text.innerText = 'Приемник: Android';
-        step1Title.innerText = 'Шаг 1: Выберите источник переписки Viber (iPhone)';
-        step2Title.innerText = 'Шаг 2: Приемник — Android (viber_backup.zip)';
-
         androidSrc.style.display = 'none';
         iosSrc.style.display = 'flex';
         iosTarget.style.display = 'none';
@@ -1459,7 +1897,7 @@
         }
       }
 
-      updateSummary();
+      applyLanguage(currentLang);
     }
 
     async function browseIosSource() {
@@ -1516,22 +1954,23 @@
       const summaryMode = document.getElementById('summaryMode');
       const startBtn = document.getElementById('startBtn');
       const startBtnHint = document.getElementById('startBtnHint');
+      const t = I18N[currentLang] || I18N.ru;
 
       if (migrationDirection === 'ios-to-android') {
         const iosSrc = document.getElementById('sourceIosBackupInput').value.trim();
         const androidZip = document.getElementById('targetAndroidZipInput').value.trim();
 
-        summarySource.innerText = iosSrc ? ('🍏 iPhone: ' + iosSrc.split('\\').pop()) : '🍏 Бэкап iPhone не выбран';
-        summaryTarget.innerText = androidZip ? ('📱 Android: ' + androidZip.split('\\').pop()) : '📱 Архив не указан';
-        summaryMode.innerText = 'Реверс: iPhone ➔ Android (viber_backup.zip)';
+        summarySource.innerText = iosSrc ? ('🍏 iPhone: ' + iosSrc.split('\\').pop()) : (currentLang === 'en' ? '🍏 iPhone backup not selected' : '🍏 Бэкап iPhone не выбран');
+        summaryTarget.innerText = androidZip ? ('📱 Android: ' + androidZip.split('\\').pop()) : (currentLang === 'en' ? '📱 Archive not specified' : '📱 Архив не указан');
+        summaryMode.innerText = currentLang === 'en' ? 'Reverse: iPhone ➔ Android (viber_backup.zip)' : 'Реверс: iPhone ➔ Android (viber_backup.zip)';
         summaryMode.style.color = 'var(--accent)';
 
         if (iosSrc) {
           startBtn.disabled = false;
-          startBtnHint.innerText = 'Готов к реверс-миграции на Android (упаковка в viber_backup.zip)';
+          startBtnHint.innerText = t.startHintReverseReady;
         } else {
           startBtn.disabled = true;
-          startBtnHint.innerText = 'Укажите папку бэкапа iPhone или базу Chat.data на Шаге 1';
+          startBtnHint.innerText = t.startHintReverseSelect;
         }
         return;
       }
@@ -1543,8 +1982,8 @@
       let sourceSelected = false;
 
       if (activeTab === 'demo') {
-        summarySource.innerText = '🧪 Синтетический тест (3 чата, 5 сообщ.)';
-        summaryMode.innerText = 'Тестовый макет (Демо)';
+        summarySource.innerText = currentLang === 'en' ? '🧪 Synthetic Test (3 chats, 5 msgs)' : '🧪 Синтетический тест (3 чата, 5 сообщ.)';
+        summaryMode.innerText = t.summaryDemoMode;
         summaryMode.style.color = 'var(--warning)';
         sourceSelected = true;
       } else if (activeTab === 'desktop') {
@@ -1552,44 +1991,44 @@
           summarySource.innerText = '💻 Viber Desktop: ' + dbPath.split('\\').pop();
           sourceSelected = true;
         } else {
-          summarySource.innerText = '💻 База viber.db не указана';
+          summarySource.innerText = currentLang === 'en' ? '💻 viber.db not specified' : '💻 База viber.db не указана';
         }
-        summaryMode.innerText = 'Реальный перенос (Zero Data Loss)';
+        summaryMode.innerText = t.summaryRealMode;
         summaryMode.style.color = 'var(--success)';
       } else if (activeTab === 'zip') {
         if (zipPath) {
-          summarySource.innerText = '☁️ Архив Google Drive: ' + zipPath.split('\\').pop();
+          summarySource.innerText = '☁️ Google Drive: ' + zipPath.split('\\').pop();
           sourceSelected = true;
         } else {
-          summarySource.innerText = '☁️ Файл viber_backup.zip не указан';
+          summarySource.innerText = currentLang === 'en' ? '☁️ viber_backup.zip not specified' : '☁️ Файл viber_backup.zip не указан';
         }
-        summaryMode.innerText = 'Реальный перенос (Zero Data Loss)';
+        summaryMode.innerText = t.summaryRealMode;
         summaryMode.style.color = 'var(--success)';
       } else {
         // USB Tab
-        summarySource.innerText = '📱 Xiaomi 13 Ultra (выберите Desktop или Zip)';
-        summaryMode.innerText = 'Реальный перенос';
+        summarySource.innerText = currentLang === 'en' ? '📱 Xiaomi 13 Ultra (select Desktop or Zip)' : '📱 Xiaomi 13 Ultra (выберите Desktop или Zip)';
+        summaryMode.innerText = t.summaryRealMode;
         summaryMode.style.color = 'var(--text-muted)';
       }
 
       if (targetBackup) {
-        summaryTarget.innerText = '🍏 Копия: ' + targetBackup.split('\\').pop();
+        summaryTarget.innerText = (currentLang === 'en' ? '🍏 Backup: ' : '🍏 Копия: ') + targetBackup.split('\\').pop();
       } else {
-        summaryTarget.innerText = '🍏 Резервная копия не выбрана';
+        summaryTarget.innerText = currentLang === 'en' ? '🍏 Backup not selected' : '🍏 Резервная копия не выбрана';
       }
 
       // Валидация кнопки запуска
       if (activeTab === 'demo') {
         startBtn.disabled = false;
-        startBtnHint.innerText = 'Готов к тестовому прогону конвертера';
+        startBtnHint.innerText = currentLang === 'en' ? 'Ready for test run of converter' : 'Готов к тестовому прогону конвертера';
       } else if (sourceSelected) {
         startBtn.disabled = false;
         startBtnHint.innerText = targetBackup 
-          ? 'Готов к реальному внедрению чатов в бэкап iPhone' 
-          : 'Будет выполнена конвертация базы без модификации iPhone';
+          ? t.startHintReadyIos 
+          : t.startHintConvertOnly;
       } else {
         startBtn.disabled = true;
-        startBtnHint.innerText = 'Для запуска выберите базу Viber Desktop, архив Google Drive или демо-макет на Шаге 1';
+        startBtnHint.innerText = t.startHintSelectSource;
       }
     }
 
@@ -1704,6 +2143,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      applyLanguage(currentLang);
       initBridgeConnection();
     });
   </script>
