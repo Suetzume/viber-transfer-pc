@@ -668,7 +668,7 @@
       <div class="server-status">
         <button class="refresh-devices-btn" id="refreshBtn" onclick="refreshHardwareDevices()" title="Повторно сканировать USB-устройства и бэкапы">🔄 Сканировать устройства</button>
         <span class="api-badge" id="apiBadge">Бридж-сервер: В сети</span>
-        <span class="version-tag">v2.3.0 • Stage 2 Wizard</span>
+        <span class="version-tag">v2.4.0 • Stage 3 Desktop Assistant</span>
       </div>
     </header>
 
@@ -715,16 +715,29 @@
           <span class="status-dot offline" id="usbStateDot">Не подключен</span>
         </div>
 
-        <div class="alert-banner info">
-          <div>ℹ️</div>
-          <div>
-            <strong>Политика безопасности Android 11–16 (No-Root):</strong> Google запрещает прямое считывание баз данных приложений через ADB без root-прав. Для безопасного извлечения чатов выберите один из 2 официальных путей:
+        <!-- Desktop Sync Assistant Box -->
+        <div class="instructions-box" id="desktopSyncAssistantBox" style="background: rgba(115, 96, 242, 0.08); border-color: rgba(115, 96, 242, 0.35);">
+          <strong style="color: var(--accent); font-size: 14px;">⚡ Быстрое получение переписки с телефона без проводов и root:</strong>
+          <p style="margin: 6px 0 10px 0; font-size: 13px; color: var(--text);">
+            Поскольку Android 16 не позволяет напрямую скопировать базу данных мессенджера по USB-кабелю, самый надежный и быстрый способ — официальная синхронизация с Viber на ПК:
+          </p>
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+            <button class="start-btn" id="launchViberBtn" style="padding: 10px 18px; font-size: 13px; width: auto;" onclick="launchViberDesktopApp()">
+              🚀 Запустить Viber Desktop на этом ПК
+            </button>
+            <span id="launchViberStatus" style="font-size: 12px; color: var(--text-muted);"></span>
           </div>
+          <ol style="margin-left: 20px; font-size: 13px; line-height: 1.6;">
+            <li>Нажмите фиолетовую кнопку выше (программа запустит Viber или его установщик <code>ViberSetup.exe</code>).</li>
+            <li>На экране телефона откройте Viber: <strong>Еще ➔ значок QR-кода</strong> (в правом верхнем углу).</li>
+            <li>Наведите камеру смартфона на экран ПК и нажмите <strong>«Синхронизировать»</strong> на телефоне.</li>
+            <li><strong>Готово!</strong> Наша программа в реальном времени сама подхватит загруженные чаты.</li>
+          </ol>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <button class="browse-btn" style="justify-content: center; padding: 12px;" onclick="switchSourceTab('desktop')">
-            💻 Использовать Viber Desktop (Рекомендуется)
+            💻 Перейти к Viber Desktop (ПК)
           </button>
           <button class="browse-btn" style="justify-content: center; padding: 12px;" onclick="switchSourceTab('zip')">
             ☁️ Указать архив Google Drive (zip)
@@ -737,6 +750,16 @@
         <div class="alert-banner success" id="desktopDetectBanner">
           <div>✓</div>
           <div id="desktopDetectText">База данных Viber Desktop найдена на этом компьютере.</div>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button class="browse-btn" id="launchViberDesktopTabBtn" onclick="launchViberDesktopApp()">
+            🚀 Открыть Viber Desktop
+          </button>
+          <button class="browse-btn" onclick="checkDesktopNow()">
+            🔄 Проверить синхронизацию сейчас
+          </button>
+          <span id="desktopSyncStatusText" style="font-size: 12px; color: var(--text-muted);"></span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -1043,6 +1066,14 @@
       const dbInput = document.getElementById('viberDbInput');
       const detectBanner = document.getElementById('desktopDetectBanner');
       const detectText = document.getElementById('desktopDetectText');
+      const launchBtn = document.getElementById('launchViberBtn');
+      const launchTabBtn = document.getElementById('launchViberDesktopTabBtn');
+
+      if (android.desktopLauncher && android.desktopLauncher.label) {
+        if (launchBtn) launchBtn.innerText = '🚀 ' + android.desktopLauncher.label;
+        if (launchTabBtn) launchTabBtn.innerText = '🚀 ' + android.desktopLauncher.label;
+      }
+
       if (accs.length > 0) {
         const acc = accs[0];
         if (!dbInput.value) dbInput.value = acc.dbPath;
@@ -1050,7 +1081,7 @@
         detectText.innerHTML = `Найдена база аккаунта <strong>${acc.phone}</strong> (${Math.round(acc.sizeBytes / 1024)} КБ).`;
       } else {
         detectBanner.className = 'alert-banner info';
-        detectText.innerHTML = `База Viber Desktop не найдена в %AppData%\\ViberPC. Вы можете указать файл вручную или запустить Viber Desktop на этом ПК.`;
+        detectText.innerHTML = `База Viber Desktop не найдена в %AppData%\\ViberPC. Нажмите кнопку выше для запуска и отсканируйте QR-код телефоном.`;
       }
 
       // 2. Диагностика Apple / iTunes
@@ -1093,6 +1124,76 @@
       document.getElementById('targetBackupInput').value = actualPath;
       updateSummary();
       log(`Указан стандартный путь резервной копии iTunes: ${actualPath}`, 'info');
+    }
+
+    async function launchViberDesktopApp() {
+      const statusEl = document.getElementById('launchViberStatus');
+      if (statusEl) statusEl.innerText = 'Запуск...';
+      log('Запрос на запуск Viber Desktop / установщика...', 'info');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/launch-desktop`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          const type = data.status && data.status.type;
+          const msg = type === 'installer' 
+            ? 'Запущен официальный установщик ViberSetup.exe. Следуйте подсказкам на экране ПК.'
+            : (type === 'installed' ? 'Viber Desktop успешно запущен на ПК.' : 'Открыта страница загрузки Viber Desktop.');
+          if (statusEl) statusEl.innerText = '✓ Запущено';
+          log(msg, 'ok');
+          startDesktopAutoPolling();
+        } else {
+          if (statusEl) statusEl.innerText = 'Ошибка запуска: ' + (data.error || '');
+          log('Не удалось запустить: ' + (data.error || 'Неизвестная ошибка'), 'warn');
+        }
+      } catch (err) {
+        if (statusEl) statusEl.innerText = 'Ошибка сети';
+        log('Ошибка вызова: ' + err.message, 'warn');
+      }
+    }
+
+    async function checkDesktopNow() {
+      const statusText = document.getElementById('desktopSyncStatusText');
+      if (statusText) statusText.innerText = 'Проверка...';
+      try {
+        const res = await fetch(`${API_BASE}/api/detect-desktop`);
+        const data = await res.json();
+        if (data.success && data.accounts && data.accounts.length > 0) {
+          const acc = data.accounts[0];
+          document.getElementById('viberDbInput').value = acc.dbPath;
+          if (statusText) statusText.innerText = `Найдена база: ${acc.phone} (${Math.round(acc.sizeBytes / 1024)} КБ)`;
+          log(`Найдена база аккаунта ${acc.phone} (${acc.dbPath})`, 'ok');
+          updateSummary();
+        } else {
+          if (statusText) statusText.innerText = 'База пока не обнаружена (завершите синхронизацию по QR-коду)';
+          log('База данных в %APPDATA%\\ViberPC пока не обнаружена. Завершите синхронизацию по QR-коду.', 'info');
+        }
+      } catch (err) {
+        if (statusText) statusText.innerText = 'Ошибка опроса';
+      }
+    }
+
+    let desktopPollTimer = null;
+    function startDesktopAutoPolling() {
+      if (desktopPollTimer) return;
+      log('Включен фоновый авто-мониторинг появления базы Viber Desktop...', 'info');
+      desktopPollTimer = setInterval(async () => {
+        try {
+          const res = await fetch(`${API_BASE}/api/detect-desktop`);
+          const data = await res.json();
+          if (data.success && data.accounts && data.accounts.length > 0) {
+            const acc = data.accounts[0];
+            const dbInput = document.getElementById('viberDbInput');
+            if (!dbInput.value || dbInput.value !== acc.dbPath) {
+              dbInput.value = acc.dbPath;
+              updateSummary();
+              log(`Автоматически обнаружена база данных Viber Desktop (${acc.phone})! Переписка готова к переносу на iPhone.`, 'ok');
+              clearInterval(desktopPollTimer);
+              desktopPollTimer = null;
+            }
+          }
+        } catch (_) {}
+      }, 3000);
     }
 
     let processPathHint = 'C:\\Users\\mythi\\AppData\\Roaming\\Apple Computer\\MobileSync\\Backup';

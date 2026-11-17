@@ -47,7 +47,9 @@ function detectLocalViberDesktop() {
           accounts.push({
             phone: ent.name,
             dbPath,
-            sizeBytes: stat.size
+            sizeBytes: stat.size,
+            mtime: stat.mtime.toISOString(),
+            hasWal: fs.existsSync(dbPath + '-wal')
           });
         }
       }

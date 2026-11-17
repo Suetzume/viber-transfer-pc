@@ -4,6 +4,7 @@
 
 const adbConnector = require('./android/adb-connector');
 const iosConnector = require('./ios/ios-connector');
+const desktopLauncher = require('./desktop/viber-desktop-launcher');
 
 /**
  * Комплексное сканирование всей физической и логической инфраструктуры:
@@ -15,6 +16,7 @@ function scanAllDevicesAndBackups() {
   const androidSources = adbConnector.detectAndroidDataSources();
   const iosBackups = iosConnector.scanIOSBackups();
   const appleServices = iosConnector.detectAppleServices();
+  const launcherStatus = desktopLauncher.getViberDesktopLauncherStatus();
 
   return {
     timestamp: Date.now(),
@@ -23,6 +25,7 @@ function scanAllDevicesAndBackups() {
       adbAvailable: androidSources.tier3_adb.available,
       adbError: androidSources.tier3_adb.error || null,
       desktopAccounts: androidSources.tier1_desktop.accounts,
+      desktopLauncher: launcherStatus,
       foundArchives: androidSources.tier2_archives.archives,
       recommendedStrategy: androidSources.recommendedStrategy
     },
@@ -37,5 +40,6 @@ function scanAllDevicesAndBackups() {
 module.exports = {
   ...adbConnector,
   ...iosConnector,
+  ...desktopLauncher,
   scanAllDevicesAndBackups
 };

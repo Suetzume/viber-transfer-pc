@@ -42,6 +42,7 @@ const modules = [
   { id: 'pipeline/migration-engine', file: 'src/engine/pipeline/migration-engine.js' },
   { id: 'devices/android-connector', file: 'src/devices/android/adb-connector.js' },
   { id: 'devices/ios-connector', file: 'src/devices/ios/ios-connector.js' },
+  { id: 'devices/desktop-launcher', file: 'src/devices/desktop/viber-desktop-launcher.js' },
   { id: 'devices/index', file: 'src/devices/index.js' },
   { id: 'server/bridge-server', file: 'src/server/bridge-server.js' }
 ];
@@ -109,6 +110,7 @@ function __resolve(fromId, reqPath) {
   if (reqPath.includes('migration-engine')) return 'pipeline/migration-engine';
   if (reqPath.includes('adb-connector')) return 'devices/android-connector';
   if (reqPath.includes('ios-connector')) return 'devices/ios-connector';
+  if (reqPath.includes('viber-desktop-launcher')) return 'devices/desktop-launcher';
   if (reqPath.includes('devices')) return 'devices/index';
   if (reqPath.includes('bridge-server')) return 'server/bridge-server';
 

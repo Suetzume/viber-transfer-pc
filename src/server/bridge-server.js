@@ -19,7 +19,9 @@ const {
 
 const {
   scanAllDevicesAndBackups,
-  validateBackupForRestore
+  validateBackupForRestore,
+  launchViberDesktop,
+  getViberDesktopLauncherStatus
 } = require('../devices');
 
 const { unpackZip } = require('../engine/backup/zip-handler');
@@ -176,6 +178,19 @@ const server = http.createServer((req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: true, validation: val }));
     });
+    return;
+  }
+
+  // API: Запуск Viber Desktop или инсталлятора
+  if (url.pathname === '/api/launch-desktop' && req.method === 'POST') {
+    try {
+      const result = launchViberDesktop();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(result));
+    } catch (err) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
     return;
   }
 
@@ -343,7 +358,21 @@ $form.Close()
               fs.writeFileSync(extractedDbPath, msgEntry.data);
               androidDb = extractedDbPath;
             } else {
-              androidDb = srcPath;
+              let actualDbPath = srcPath;
+              if (fs.existsSync(srcPath + '-wal')) {
+                onProgress({ step: 'EXTRACT', percent: 6, message: 'Создание безопасного снимка WAL базы Viber Desktop...' });
+                const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'viber-db-snap-'));
+                const snapDb = path.join(tempDir, 'viber.db');
+                fs.copyFileSync(srcPath, snapDb);
+                if (fs.existsSync(srcPath + '-wal')) {
+                  fs.copyFileSync(srcPath + '-wal', snapDb + '-wal');
+                }
+                if (fs.existsSync(srcPath + '-shm')) {
+                  fs.copyFileSync(srcPath + '-shm', snapDb + '-shm');
+                }
+                actualDbPath = snapDb;
+              }
+              androidDb = actualDbPath;
             }
           }
 
