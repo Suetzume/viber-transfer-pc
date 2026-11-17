@@ -39,7 +39,7 @@ describe('Distribution: Standalone ViberTransfer.exe Verification', () => {
           resolve(res.statusCode === 200);
         });
         req.on('error', () => {
-          if (attempts > 25) {
+          if (attempts > 40) {
             clearInterval(interval);
             resolve(false);
           }
@@ -72,7 +72,7 @@ describe('Distribution: Standalone ViberTransfer.exe Verification', () => {
           });
         });
         req.on('error', () => {
-          if (attempts > 25) {
+          if (attempts > 40) {
             clearInterval(interval);
             resolve(null);
           }

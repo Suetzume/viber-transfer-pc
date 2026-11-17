@@ -39,6 +39,7 @@ const modules = [
   { id: 'adapters/ios-adapter', file: 'src/engine/adapters/ios-adapter.js' },
   { id: 'manifest/manifest-builder', file: 'src/engine/manifest/manifest-builder.js' },
   { id: 'backup/zip-handler', file: 'src/engine/backup/zip-handler.js' },
+  { id: 'pipeline/media-pipeline', file: 'src/engine/pipeline/media-pipeline.js' },
   { id: 'pipeline/migration-engine', file: 'src/engine/pipeline/migration-engine.js' },
   { id: 'devices/android-connector', file: 'src/devices/android/adb-connector.js' },
   { id: 'devices/ios-connector', file: 'src/devices/ios/ios-connector.js' },
@@ -107,6 +108,7 @@ function __resolve(fromId, reqPath) {
   if (reqPath.includes('ios-adapter')) return 'adapters/ios-adapter';
   if (reqPath.includes('manifest-builder')) return 'manifest/manifest-builder';
   if (reqPath.includes('zip-handler')) return 'backup/zip-handler';
+  if (reqPath.includes('media-pipeline')) return 'pipeline/media-pipeline';
   if (reqPath.includes('migration-engine')) return 'pipeline/migration-engine';
   if (reqPath.includes('adb-connector')) return 'devices/android-connector';
   if (reqPath.includes('ios-connector')) return 'devices/ios-connector';

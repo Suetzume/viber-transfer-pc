@@ -668,7 +668,7 @@
       <div class="server-status">
         <button class="refresh-devices-btn" id="refreshBtn" onclick="refreshHardwareDevices()" title="Повторно сканировать USB-устройства и бэкапы">🔄 Сканировать устройства</button>
         <span class="api-badge" id="apiBadge">Бридж-сервер: В сети</span>
-        <span class="version-tag">v2.5.0 • Stage 4 Media CAS</span>
+        <span class="version-tag">v2.6.0 • Stage 5 Apple Safeguards</span>
       </div>
     </header>
 
@@ -831,13 +831,16 @@
       <div style="display: flex; flex-direction: column; gap: 6px;">
         <label style="font-size: 12px; color: var(--text-muted);">Папка резервной копии iTunes MobileSync:</label>
         <div class="input-group">
-          <input type="text" class="path-input" id="targetBackupInput" placeholder="C:\Users\...\Apple Computer\MobileSync\Backup\<UDID>" oninput="updateSummary()">
+          <input type="text" class="path-input" id="targetBackupInput" placeholder="C:\Users\...\Apple Computer\MobileSync\Backup\<UDID>" oninput="onTargetBackupInput()">
           <button class="browse-btn" id="browseFolderBtn" onclick="browseFolder()">📁 Выбрать папку бэкапа...</button>
         </div>
         <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
           <button type="button" class="browse-btn" style="font-size: 11px; padding: 4px 10px;" onclick="useDefaultAppleBackupFolder()">⚡ Вставить стандартную папку MobileSync</button>
+          <button type="button" class="browse-btn" style="font-size: 11px; padding: 4px 10px;" onclick="validateCurrentTargetBackup()">🛡️ Проверить бэкап на шифрование</button>
           <span style="font-size: 11px; color: var(--warning);" id="browseFolderHint"></span>
         </div>
+        <!-- Target Validation Message Box -->
+        <div id="targetValidationBox" style="display: none; margin-top: 6px;" class="alert-banner"></div>
       </div>
     </div>
 
@@ -916,13 +919,23 @@
         <div class="success-icon">✓</div>
         <h3>Миграция успешно завершена!</h3>
         <p id="successDesc">Все сообщения и вложения успешно конвертированы и зарегистрированы в целевой резервной копии.</p>
-        <div class="alert-banner info" style="text-align: left; max-width: 540px;">
+
+        <div style="margin: 12px 0;">
+          <button class="browse-btn" id="openBackupFolderBtn" style="background: var(--accent); color: white; padding: 10px 18px; font-weight: 600; border-radius: 8px; cursor: pointer;" onclick="openBackupFolder()">
+            📂 Открыть папку бэкапа в Проводнике
+          </button>
+        </div>
+
+        <div class="alert-banner info" style="text-align: left; max-width: 580px;">
           <div>📱</div>
           <div>
-            <strong>Финальный шаг восстановления на iPhone:</strong><br>
-            1. В настройках iPhone временно отключите функцию <em>«Локатор» (Find My iPhone)</em>.<br>
-            2. В iTunes нажмите <strong>«Восстановить из копии»</strong> и выберите обновленный бэкап.<br>
-            3. После перезагрузки смартфона откройте Viber — вся переписка появится в приложении!
+            <strong>Финальный пошаговый мастер восстановления на iPhone:</strong><br>
+            <ol style="margin: 6px 0 0 16px; padding: 0; line-height: 1.6;">
+              <li><strong>Отключите «Локатор»:</strong> В настройках iPhone откройте <em>[Ваше имя] ➔ Локатор ➔ Найти iPhone ➔ Выключить</em> (потребуется пароль Apple ID).</li>
+              <li><strong>Подключите iPhone к ПК:</strong> Соедините телефон кабелем USB с компьютером и запустите <em>iTunes</em> (или <em>«Устройства Apple»</em>).</li>
+              <li><strong>Восстановите резервную копию:</strong> Нажмите <strong>«Восстановить из копии...»</strong> и выберите наш обновленный бэкап.</li>
+              <li><strong>Готово:</strong> После перезагрузки телефона откройте Viber — все чаты, сообщения и медиа будут на месте! После этого включите «Локатор» обратно.</li>
+            </ol>
           </div>
         </div>
         <button class="reset-btn" onclick="resetUI()">Выполнить новый перенос</button>
@@ -1128,6 +1141,7 @@
       
       document.getElementById('targetBackupInput').value = actualPath;
       updateSummary();
+      validateCurrentTargetBackup();
       log(`Указан стандартный путь резервной копии iTunes: ${actualPath}`, 'info');
     }
 
@@ -1254,6 +1268,7 @@
         if (data.success && data.selectedPath) {
           document.getElementById('targetBackupInput').value = data.selectedPath;
           updateSummary();
+          validateCurrentTargetBackup();
           log(`Выбрана папка бэкапа iTunes: ${data.selectedPath}`, 'ok');
         } else if (!data.success && data.error) {
           log(`Диалог папки: ${data.error}`, 'warn');
@@ -1268,6 +1283,74 @@
         if (hint) {
           hint.innerText = '';
         }
+      }
+    }
+
+    let targetValidationTimeout = null;
+    function onTargetBackupInput() {
+      updateSummary();
+      if (targetValidationTimeout) clearTimeout(targetValidationTimeout);
+      targetValidationTimeout = setTimeout(() => {
+        validateCurrentTargetBackup();
+      }, 500);
+    }
+
+    async function validateCurrentTargetBackup() {
+      const box = document.getElementById('targetValidationBox');
+      const targetPath = document.getElementById('targetBackupInput').value.trim();
+      if (!targetPath) {
+        if (box) box.style.display = 'none';
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/inspect-target`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetPath })
+        });
+        const data = await res.json();
+        if (box) {
+          box.style.display = 'flex';
+          if (data.isEncrypted) {
+            box.className = 'alert-banner warning';
+            box.innerHTML = '<div>⚠️</div><div><strong>Внимание: Резервная копия зашифрована паролем!</strong><br>iTunes откажется восстановить модифицированный бэкап (Ошибка 14/54). Пожалуйста, снимите флажок «Зашифровать локальную копию» в iTunes перед продолжением.</div>';
+            log('Обнаружена зашифрованная копия iTunes! Требуется отключить шифрование.', 'warn');
+          } else if (data.valid) {
+            box.className = 'alert-banner ok';
+            box.innerHTML = '<div>✓</div><div><strong>Резервная копия готова к приему данных:</strong><br>Шифрование: Отключено (Безопасно). Наличие Manifest.db подтверждено.</div>';
+            log('Резервная копия проверена: шифрование выключено, готова к записи.', 'ok');
+          } else {
+            box.className = 'alert-banner info';
+            box.innerHTML = `<div>ℹ️</div><div><strong>Статус бэкапа:</strong> ${data.errors && data.errors.length ? data.errors.join(', ') : 'Ожидание проверки'}</div>`;
+          }
+        }
+      } catch (err) {
+        if (box) {
+          box.style.display = 'flex';
+          box.className = 'alert-banner info';
+          box.innerHTML = `<div>ℹ️</div><div>Проверка бэкапа: ${err.message}</div>`;
+        }
+      }
+    }
+
+    async function openBackupFolder() {
+      const targetBackup = document.getElementById('targetBackupInput').value.trim();
+      if (!targetBackup) {
+        alert('Папка бэкапа не выбрана');
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/open-folder`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: targetBackup })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          alert('Не удалось открыть папку: ' + (data.error || 'Ошибка'));
+        }
+      } catch (err) {
+        alert('Ошибка вызова API: ' + err.message);
       }
     }
 

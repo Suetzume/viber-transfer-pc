@@ -9,6 +9,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const { exec } = require('node:child_process');
 const { DatabaseSync } = require('node:sqlite');
 
 const {
@@ -162,21 +163,58 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // API: Валидация бэкапа перед восстановлением
-  if (url.pathname === '/api/validate-backup' && req.method === 'POST') {
+  // API: Валидация бэкапа перед восстановлением / Инспекция целевой папки
+  if ((url.pathname === '/api/validate-backup' || url.pathname === '/api/inspect-target') && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk);
     req.on('end', () => {
       let params = {};
       try { params = JSON.parse(body || '{}'); } catch (_) {}
-      if (!params.backupPath) {
+      const targetDir = params.backupPath || params.targetPath;
+      if (!targetDir) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: 'Параметр backupPath обязателен' }));
+        res.end(JSON.stringify({ success: false, error: 'Параметр targetPath или backupPath обязателен' }));
         return;
       }
-      const val = validateBackupForRestore(params.backupPath);
+      const val = validateBackupForRestore(targetDir);
+      const isEncrypted = Boolean(val.details && val.details.isEncrypted);
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, validation: val }));
+      res.end(JSON.stringify({
+        success: true,
+        valid: val.ok,
+        isEncrypted,
+        warnings: val.warnings,
+        errors: val.errors,
+        details: val.details,
+        validation: val
+      }));
+    });
+    return;
+  }
+
+  // API: Открытие папки бэкапа в Проводнике Windows
+  if (url.pathname === '/api/open-folder' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      let params = {};
+      try { params = JSON.parse(body || '{}'); } catch (_) {}
+      const targetPath = params.path || params.folderPath;
+      if (!targetPath || !fs.existsSync(targetPath)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Указанный путь не существует' }));
+        return;
+      }
+      try {
+        const stat = fs.statSync(targetPath);
+        const folderToOpen = stat.isDirectory() ? targetPath : path.dirname(targetPath);
+        exec(`explorer.exe "${folderToOpen}"`, () => {});
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, folder: folderToOpen }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
     });
     return;
   }
@@ -397,6 +435,16 @@ $form.Close()
           if (params.targetPath && fs.existsSync(params.targetPath)) {
             const manifestPath = path.join(params.targetPath, 'Manifest.db');
             if (fs.existsSync(manifestPath)) {
+              // Защита от ошибок Apple: проверка на шифрование
+              const val = validateBackupForRestore(params.targetPath);
+              if (val.details && val.details.isEncrypted) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                  success: false,
+                  error: 'Резервная копия зашифрована паролем iTunes! Восстановление зашифрованного бэкапа после модификации будет заблокировано iTunes (Ошибка 14/54). Пожалуйста, снимите галочку «Шифровать локальную копию» в iTunes перед миграцией.'
+                }));
+                return;
+              }
               targetBackupDir = params.targetPath;
               manifestDb = manifestPath;
               const fileId = computeManifestFileId('AppDomainGroup-group.viber', 'database/Chat.data');
