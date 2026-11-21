@@ -6,7 +6,7 @@
 [![Download EXE](https://img.shields.io/badge/download-ViberTransfer.exe%20(Portable)-success.svg?style=for-the-badge&logo=windows)](https://github.com/Suetzume/viber-transfer-pc/releases/latest)
 [![Tests](https://img.shields.io/badge/tests-84%2F84%20passed%20(100%25)-brightgreen.svg?style=for-the-badge&logo=checkmarx)](tests/)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20x64-informational.svg?style=for-the-badge&logo=windows)](https://github.com/Suetzume/viber-transfer-pc/releases/latest)
-[![License](https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT%20Non--Commercial%20(MIT--NC)-orange.svg?style=for-the-badge)](LICENSE)
 [![Zero Data Loss](https://img.shields.io/badge/Zero--Data--Loss-Guaranteed-gold.svg?style=for-the-badge&logo=securityscorecard)](#гарантия-целостности-zero-data-loss)
 [![Direction](https://img.shields.io/badge/direction-Android%20%E2%87%84%20iOS%20Bidirectional-purple.svg?style=for-the-badge)](#двусторонняя-миграция)
 
@@ -210,6 +210,15 @@ Run_Benchmark.bat
 
 ---
 
+### 📄 Лицензия и условия использования (MIT Non-Commercial)
+
+Проект распространяется по модифицированной некоммерческой лицензии **[MIT Non-Commercial License (MIT-NC)](LICENSE)**:
+* ✅ **Разрешено:** бесплатное личное, образовательное и некоммерческое использование, изучение и модификация кода.
+* 🚫 **Запрещено без разрешения автора:** любое коммерческое использование продукта (продажа, платное распространение, включение в платные программные комплексы или оказание платных услуг клиентам с его помощью).
+* 📧 **Для получения разрешения на коммерческое использование:** свяжитесь с автором по электронной почте **[mythicaltun@gmail.com](mailto:mythicaltun@gmail.com)**.
+
+---
+
 <br />
 
 <a name="-english-section"></a>
@@ -348,6 +357,9 @@ npm run build:exe
 
 ---
 
-### 📄 License
+### 📄 License (MIT Non-Commercial)
 
-Distributed under the **[MIT License](LICENSE)**.
+Distributed under the **[MIT Non-Commercial License (MIT-NC)](LICENSE)**:
+* ✅ **Permitted:** Free personal, educational, and non-commercial use, modification, and sharing.
+* 🚫 **Restricted:** Commercial use of any kind (including selling, paid distribution, bundling into commercial products, or providing paid migration services to third parties) is **strictly prohibited without prior written permission from the author**.
+* 📧 **Commercial Licensing & Permission Inquiries:** Please contact **[mythicaltun@gmail.com](mailto:mythicaltun@gmail.com)**.
