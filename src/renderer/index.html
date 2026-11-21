@@ -693,7 +693,7 @@
         </button>
         <button class="refresh-devices-btn" id="refreshBtn" onclick="refreshHardwareDevices()" title="Повторно сканировать USB-устройства и бэкапы">🔄 Сканировать устройства</button>
         <span class="api-badge" id="apiBadge">Бридж-сервер: В сети</span>
-        <span class="version-tag">v3.3.1 • Final Enterprise Release</span>
+        <span class="version-tag">v3.3.2 • Final Enterprise Release</span>
       </div>
     </header>
 
@@ -734,7 +734,7 @@
       <div id="androidSourceBlock">
         <!-- Source Tabs -->
         <div class="source-tabs">
-          <button class="source-tab-btn active" id="tabBtnUsb" onclick="switchSourceTab('usb')">📱 USB Смартфон</button>
+          <button class="source-tab-btn active" id="tabBtnUsb" onclick="switchSourceTab('usb')">📱 USB Смартфон (Root / ADB)</button>
           <button class="source-tab-btn" id="tabBtnDesktop" onclick="switchSourceTab('desktop')">💻 Viber Desktop (ПК)</button>
           <button class="source-tab-btn" id="tabBtnZip" onclick="switchSourceTab('zip')">☁️ Архив Google Drive</button>
           <button class="source-tab-btn" id="tabBtnDemo" onclick="switchSourceTab('demo')">🧪 Тестовый макет</button>
@@ -745,9 +745,19 @@
         <div class="device-info-pill" id="usbDeviceInfo">
           <div>
             <div class="device-title" id="usbModelTitle">📱 Телефон не обнаружен</div>
-            <div class="device-meta" id="usbModelMeta">Подключите смартфон кабелем USB с включенной отладкой</div>
+            <div class="device-meta" id="usbModelMeta">Подключите смартфон кабелем USB с включенной отладкой (для прямого экспорта базы требуется Root)</div>
           </div>
           <span class="status-dot offline" id="usbStateDot">Не подключен</span>
+        </div>
+
+        <!-- Explicit Root Requirement Banner for USB / ADB Method -->
+        <div class="alert-banner warning" id="usbRootRequirementBanner" style="align-items: flex-start;">
+          <div style="font-size: 16px;">⚠️</div>
+          <div style="line-height: 1.55;">
+            <strong id="usbRootBannerTitle">Обязательное требование для прямого переноса по USB (ADB): Root-доступ (Суперпользователь)</strong><br>
+            <span id="usbRootBannerDesc">Для прямого извлечения текстовой базы чатов (<code>/data/data/com.viber.voip/databases/viber_messages</code>) по USB-кабелю на смартфоне <strong>обязательно должен быть открыт Root-доступ (<code>su</code>)</strong>. На обычных (нерутированных) телефонах ОС Android блокирует чтение системного раздела <code>/data/data/</code> (по ADB доступны только медиафайлы) — если у вас нет Root-прав, используйте способы ниже: <strong>«Viber Desktop (ПК)»</strong> или <strong>«Архив Google Drive»</strong>.</span>
+            <div id="usbRootLiveStatus" style="margin-top: 6px; font-weight: 600;"></div>
+          </div>
         </div>
 
         <!-- Desktop Sync Assistant Box -->
@@ -1040,7 +1050,7 @@
         scanDevicesActive: '⌛ Опрос USB...',
         serverOnline: 'Бридж-сервер: В сети (Online)',
         serverOffline: 'Сервер офлайн',
-        versionTag: 'v3.3.1 • Final Enterprise Release',
+        versionTag: 'v3.3.2 • Final Enterprise Release',
 
         directionAndroidToIos: 'Направление: Android ➔ iPhone',
         directionIosToAndroid: 'Направление: iPhone ➔ Android (Реверс)',
@@ -1054,13 +1064,15 @@
         step1TitleAndroid: 'Шаг 1: Выберите источник переписки Viber (Android)',
         step1TitleIos: 'Шаг 1: Выберите источник переписки Viber (iPhone)',
         statusSearching: 'Поиск устройств...',
-        tabUsb: '📱 USB Смартфон',
+        tabUsb: '📱 USB Смартфон (Root / ADB)',
         tabDesktop: '💻 Viber Desktop (ПК)',
         tabZip: '☁️ Архив Google Drive',
         tabDemo: '🧪 Тестовый макет',
 
         phoneNotFound: '📱 Телефон не обнаружен',
-        connectViaUsb: 'Подключите смартфон кабелем USB с включенной отладкой',
+        connectViaUsb: 'Подключите смартфон кабелем USB с включенной отладкой (для прямого экспорта базы требуется Root)',
+        usbRootBannerTitle: 'Обязательное требование для прямого переноса по USB (ADB): Root-доступ (Суперпользователь)',
+        usbRootBannerDesc: 'Для прямого извлечения текстовой базы чатов (<code>/data/data/com.viber.voip/databases/viber_messages</code>) по USB-кабелю на смартфоне <strong>обязательно должен быть открыт Root-доступ (<code>su</code>)</strong>. На обычных (нерутированных) телефонах ОС Android блокирует чтение системного раздела <code>/data/data/</code> (по ADB доступны только медиафайлы) — если у вас нет Root-прав, используйте способы ниже: <strong>«Viber Desktop (ПК)»</strong> или <strong>«Архив Google Drive»</strong>.',
         notConnected: 'Не подключен',
         authorized: 'Авторизован ✓',
         waitingRsa: 'Ожидание RSA',
@@ -1161,7 +1173,7 @@
         scanDevicesActive: '⌛ Scanning USB...',
         serverOnline: 'Bridge Server: Online',
         serverOffline: 'Server Offline',
-        versionTag: 'v3.3.1 • Final Enterprise Release',
+        versionTag: 'v3.3.2 • Final Enterprise Release',
 
         directionAndroidToIos: 'Direction: Android ➔ iPhone',
         directionIosToAndroid: 'Direction: iPhone ➔ Android (Reverse)',
@@ -1175,13 +1187,15 @@
         step1TitleAndroid: 'Step 1: Select Viber Source (Android)',
         step1TitleIos: 'Step 1: Select Viber Source (iPhone)',
         statusSearching: 'Scanning devices...',
-        tabUsb: '📱 USB Smartphone',
+        tabUsb: '📱 USB Smartphone (Root / ADB)',
         tabDesktop: '💻 Viber Desktop (PC)',
         tabZip: '☁️ Google Drive Archive',
         tabDemo: '🧪 Test Demo',
 
         phoneNotFound: '📱 Phone not detected',
-        connectViaUsb: 'Connect smartphone via USB cable with USB debugging enabled',
+        connectViaUsb: 'Connect smartphone via USB cable with USB debugging enabled (Root required for direct DB export)',
+        usbRootBannerTitle: 'Mandatory Requirement for Direct USB (ADB) Transfer: Root Access (Superuser)',
+        usbRootBannerDesc: 'Direct extraction of the chat text database (<code>/data/data/com.viber.voip/databases/viber_messages</code>) over a USB cable strictly <strong>requires Root access (<code>su</code>)</strong> on the smartphone. On standard non-rooted phones, Android OS blocks reading the <code>/data/data/</code> partition (only media files are accessible via ADB) — if your phone is not rooted, please use the No-Root methods below: <strong>"Viber Desktop (PC)"</strong> or <strong>"Google Drive Archive"</strong>.',
         notConnected: 'Not connected',
         authorized: 'Authorized ✓',
         waitingRsa: 'Waiting for RSA prompt',
@@ -1325,6 +1339,10 @@
       if (tabDemo) tabDemo.innerText = t.tabDemo;
 
       // USB content
+      const usbRootBannerTitle = document.getElementById('usbRootBannerTitle');
+      if (usbRootBannerTitle) usbRootBannerTitle.innerText = t.usbRootBannerTitle;
+      const usbRootBannerDesc = document.getElementById('usbRootBannerDesc');
+      if (usbRootBannerDesc) usbRootBannerDesc.innerHTML = t.usbRootBannerDesc;
       const fastTitle = document.getElementById('fastSyncTitle');
       if (fastTitle) fastTitle.innerHTML = t.fastSyncTitle;
       const fastDesc = document.getElementById('fastSyncDesc');
@@ -1612,6 +1630,8 @@
       const usbModelTitle = document.getElementById('usbModelTitle');
       const usbModelMeta = document.getElementById('usbModelMeta');
       const usbStateDot = document.getElementById('usbStateDot');
+      const usbRootBanner = document.getElementById('usbRootRequirementBanner');
+      const usbRootLiveStatus = document.getElementById('usbRootLiveStatus');
 
       if (dev && dev.isAuthorized) {
         srcStatus.className = 'status-dot';
@@ -1621,14 +1641,31 @@
         const viberStateText = dev.viberInstalled
           ? (currentLang === 'en' ? `Installed${viberVer} ✓` : `Установлен${viberVer} ✓`)
           : (currentLang === 'en' ? 'Not found' : 'Не найден');
+        const rootMetaText = (dev.hasRoot || dev.extractedDbPath)
+          ? (currentLang === 'en' ? ' • Root: Yes ✓' : ' • Root: Да ✓')
+          : (currentLang === 'en' ? ' • Root: No (Locked)' : ' • Root: Нет (База закрыта)');
         const mediaSummary = (dev.adbMediaCounts && dev.adbMediaCounts.totalMediaFiles > 0)
           ? (currentLang === 'en'
             ? ` • ADB Media: ${dev.adbMediaCounts.totalMediaFiles} files (${dev.adbMediaCounts.images} photos, ${dev.adbMediaCounts.voiceNotes} voice, ${dev.adbMediaCounts.videos} videos, ${dev.adbMediaCounts.documents} docs)`
             : ` • Доступно по ADB: ${dev.adbMediaCounts.totalMediaFiles} медиа (${dev.adbMediaCounts.images} фото, ${dev.adbMediaCounts.voiceNotes} голос., ${dev.adbMediaCounts.videos} видео, ${dev.adbMediaCounts.documents} док.)`)
           : '';
-        usbModelMeta.innerText = `Android ${dev.osVersion} • ADB ${dev.serial} • Viber: ${viberStateText}${mediaSummary}`;
+        usbModelMeta.innerText = `Android ${dev.osVersion} • ADB ${dev.serial}${rootMetaText} • Viber: ${viberStateText}${mediaSummary}`;
         usbStateDot.className = 'status-dot';
         usbStateDot.innerText = t.authorized;
+
+        if (usbRootLiveStatus) {
+          if (dev.hasRoot || dev.extractedDbPath) {
+            if (usbRootBanner) usbRootBanner.className = 'alert-banner success';
+            usbRootLiveStatus.innerText = currentLang === 'en'
+              ? `🔓 Active device status (${dev.friendlyName || dev.model}): Root / ADB database access verified! Direct USB migration is ready.`
+              : `🔓 Статус подключенного устройства (${dev.friendlyName || dev.model}): Root / ADB-доступ к базе подтвержден! Прямой перенос по USB готов.`;
+          } else {
+            if (usbRootBanner) usbRootBanner.className = 'alert-banner warning';
+            usbRootLiveStatus.innerText = currentLang === 'en'
+              ? `🔒 Active phone status (${dev.friendlyName || dev.model}): Root access NOT found. Direct text database export over USB is blocked by Android ${dev.osVersion} — please select "Viber Desktop (PC)" or "Google Drive Archive" below.`
+              : `🔒 Статус вашего телефона (${dev.friendlyName || dev.model}): Root-доступ НЕ обнаружен. Прямое чтение текстовой базы по USB заблокировано защитой Android ${dev.osVersion} — выберите «Viber Desktop (ПК)» или «Архив Google Drive» ниже.`;
+          }
+        }
       } else if (dev && dev.state === 'unauthorized') {
         srcStatus.className = 'status-dot warning';
         srcStatus.innerText = t.statusNeedsAuth;
@@ -1636,6 +1673,8 @@
         usbModelMeta.innerText = currentLang === 'en' ? 'Unlock phone and tap "Allow USB debugging"' : 'Разблокируйте телефон и нажмите «Разрешить отладку с этого компьютера»';
         usbStateDot.className = 'status-dot warning';
         usbStateDot.innerText = t.waitingRsa;
+        if (usbRootBanner) usbRootBanner.className = 'alert-banner warning';
+        if (usbRootLiveStatus) usbRootLiveStatus.innerText = '';
       } else {
         srcStatus.className = 'status-dot offline';
         srcStatus.innerText = t.statusUsbDisconnected;
@@ -1643,6 +1682,8 @@
         usbModelMeta.innerText = t.connectViaUsb;
         usbStateDot.className = 'status-dot offline';
         usbStateDot.innerText = t.notConnected;
+        if (usbRootBanner) usbRootBanner.className = 'alert-banner warning';
+        if (usbRootLiveStatus) usbRootLiveStatus.innerText = '';
       }
 
       // Проверка Viber Desktop
@@ -2093,13 +2134,19 @@
         const adbDev = (systemDevices && systemDevices.android && systemDevices.android.devices && systemDevices.android.devices.length > 0)
           ? systemDevices.android.devices[0]
           : null;
-        if (adbDev && adbDev.isAuthorized && adbDev.extractedDbPath) {
-          summarySource.innerText = `📱 ADB (${adbDev.friendlyName || adbDev.model}): viber_messages`;
+        if (adbDev && adbDev.isAuthorized && (adbDev.hasRoot || adbDev.extractedDbPath)) {
+          summarySource.innerText = `📱 ADB/Root (${adbDev.friendlyName || adbDev.model}): viber_messages`;
           summaryMode.innerText = t.summaryRealMode;
           summaryMode.style.color = 'var(--success)';
           sourceSelected = true;
+        } else if (adbDev && adbDev.isAuthorized) {
+          summarySource.innerText = currentLang === 'en'
+            ? `📱 ${adbDev.friendlyName || adbDev.model}: No Root (select Desktop or Zip)`
+            : `📱 ${adbDev.friendlyName || adbDev.model}: Нет Root (выберите Desktop или Zip)`;
+          summaryMode.innerText = t.summaryRealMode;
+          summaryMode.style.color = 'var(--warning)';
         } else {
-          summarySource.innerText = currentLang === 'en' ? '📱 USB/ADB (select Desktop or Zip)' : '📱 USB/ADB (выберите Desktop или Zip)';
+          summarySource.innerText = currentLang === 'en' ? '📱 USB/ADB (Root required — or select Desktop/Zip)' : '📱 USB/ADB (нужен Root — или выберите Desktop/Zip)';
           summaryMode.innerText = t.summaryRealMode;
           summaryMode.style.color = 'var(--text-muted)';
         }

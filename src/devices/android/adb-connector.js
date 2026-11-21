@@ -252,6 +252,26 @@ function scanAndroidDevices(options = {}) {
           dev.viberInstalled = false;
         }
 
+        // Проверка наличия Root-прав (su -c id) для прямого доступа к /data/data/com.viber.voip/databases/viber_messages
+        dev.hasRoot = false;
+        try {
+          const rootOut = execSync(`"${adbExecutable}" -s ${dev.serial} shell "su -c id 2>/dev/null"`, {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'ignore'],
+            timeout: 1500
+          }).trim();
+          if (rootOut.includes('uid=0')) {
+            dev.hasRoot = true;
+            // При наличии Root копируем закрытую базу во временный буфер для выгрузки
+            execSync(`"${adbExecutable}" -s ${dev.serial} shell "su -c 'cp /data/data/com.viber.voip/databases/viber_messages /data/local/tmp/viber_messages && chmod 644 /data/local/tmp/viber_messages' 2>/dev/null"`, {
+              stdio: ['pipe', 'pipe', 'ignore'],
+              timeout: 2500
+            });
+          }
+        } catch (_) {
+          dev.hasRoot = false;
+        }
+
         // Проверка версии Viber и доступных медиафайлов в /sdcard/Android/data/com.viber.voip/files
         if (dev.viberInstalled) {
           try {

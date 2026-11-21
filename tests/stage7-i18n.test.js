@@ -112,7 +112,7 @@ describe('Stage 7: Bilingual UI Support (RU/EN) & Language Switcher', () => {
     assert.ok(res.headers['cache-control'], 'Ответ должен содержать заголовок Cache-Control');
     assert.ok(res.headers['cache-control'].includes('no-cache'), 'Cache-Control должен содержать no-cache');
     assert.ok(res.body.includes('langSwitchBtn'), 'Возвращаемый HTML должен содержать langSwitchBtn');
-    assert.ok(res.body.includes('v3.3.1'), 'Версия в HTML должна быть обновлена до v3.3.1');
+    assert.ok(res.body.includes('v3.3.2'), 'Версия в HTML должна быть обновлена до v3.3.2');
   });
 
   it('Hardware Diagnostics Contract: renderDiagnostics и applyLanguage корректно переводят все статусы устройств и служб', () => {
@@ -123,5 +123,7 @@ describe('Stage 7: Bilingual UI Support (RU/EN) & Language Switcher', () => {
     assert.ok(htmlContent.includes("t.statusUsbDisconnected"), 'Статус отключения USB должен брать перевод из I18N');
     assert.ok(htmlContent.includes("isIosToAndroid ? t.restoreGuideHeaderAndroid : t.restoreGuideHeader"), 'Инструкция восстановления должна переключаться между iPhone и Android');
     assert.ok(htmlContent.includes("isIosToAndroid ? t.openAndroidResultFolderBtn : t.openBackupFolderBtn"), 'Кнопка открытия папки результата должна переключаться между iPhone и Android');
+    assert.ok(htmlContent.includes('id="usbRootRequirementBanner"'), 'На вкладке USB должен присутствовать явный баннер о требовании Root-доступа');
+    assert.ok(htmlContent.includes('usbRootBannerTitle'), 'Заголовок требования Root-доступа должен быть локализован в I18N');
   });
 });

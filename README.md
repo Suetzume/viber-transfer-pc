@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Release](https://img.shields.io/badge/version-v3.3.1-blue.svg?style=for-the-badge&logo=github)](https://github.com/Suetzume/viber-transfer-pc/releases)
+[![Release](https://img.shields.io/badge/version-v3.3.2-blue.svg?style=for-the-badge&logo=github)](https://github.com/Suetzume/viber-transfer-pc/releases)
 [![Tests](https://img.shields.io/badge/tests-84%2F84%20passed%20(100%25)-success.svg?style=for-the-badge&logo=checkmarx)](tests/)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20x64-informational.svg?style=for-the-badge&logo=windows)](https://microsoft.com)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge)](LICENSE)
