@@ -2,14 +2,21 @@
 
 <div align="center">
 
-[![Release](https://img.shields.io/badge/version-v3.3.2-blue.svg?style=for-the-badge&logo=github)](https://github.com/Suetzume/viber-transfer-pc/releases)
-[![Tests](https://img.shields.io/badge/tests-84%2F84%20passed%20(100%25)-success.svg?style=for-the-badge&logo=checkmarx)](tests/)
-[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20x64-informational.svg?style=for-the-badge&logo=windows)](https://microsoft.com)
+[![Latest Release](https://img.shields.io/badge/release-v3.3.2%20(Latest)-blue.svg?style=for-the-badge&logo=github)](https://github.com/Suetzume/viber-transfer-pc/releases/latest)
+[![Download EXE](https://img.shields.io/badge/download-ViberTransfer.exe%20(Portable)-success.svg?style=for-the-badge&logo=windows)](https://github.com/Suetzume/viber-transfer-pc/releases/latest)
+[![Tests](https://img.shields.io/badge/tests-84%2F84%20passed%20(100%25)-brightgreen.svg?style=for-the-badge&logo=checkmarx)](tests/)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20x64-informational.svg?style=for-the-badge&logo=windows)](https://github.com/Suetzume/viber-transfer-pc/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge)](LICENSE)
 [![Zero Data Loss](https://img.shields.io/badge/Zero--Data--Loss-Guaranteed-gold.svg?style=for-the-badge&logo=securityscorecard)](#гарантия-целостности-zero-data-loss)
 [![Direction](https://img.shields.io/badge/direction-Android%20%E2%87%84%20iOS%20Bidirectional-purple.svg?style=for-the-badge)](#двусторонняя-миграция)
 
-**Automated local utility for lossless bidirectional migration of Viber chat history, media attachments, and contacts between Android and Apple iOS (iPhone).**
+**Automated local desktop utility for lossless bidirectional migration of Viber chat history, media attachments, and contacts between Android and Apple iOS (iPhone).**
+
+**Автоматизированный настольный инструмент для двустороннего переноса истории чатов, медиавложений и контактов Viber между Android и Apple iOS (iPhone) без потери данных.**
+
+<h3>
+  <a href="https://github.com/Suetzume/viber-transfer-pc/releases/latest">📥 Скачать последний релиз (ViberTransfer.exe) / Download Latest Release</a>
+</h3>
 
 [ 🇷🇺 Перейти к документации на русском языке ](#-русский-раздел) &nbsp;&bull;&nbsp; [ 🇬🇧 Switch to English Documentation ](#-english-section)
 
@@ -23,114 +30,109 @@
 ### 📌 О проекте
 
 Официальное приложение **Viber** не поддерживает прямой перенос переписок между различными мобильными операционными системами:
-* **Android** сохраняет резервные копии исключительно в скрытое хранилище **Google Drive** в формате ZIP-архива с базой SQLite (`viber_messages`).
-* **iOS (iPhone)** использует облако **Apple iCloud** с проприетарной базой данных **CoreData** (`Chat.data`).
+* **Android** сохраняет резервные копии исключительно в облако **Google Drive** в формате ZIP-архива с реляционной базой SQLite (`viber_messages`).
+* **iOS (iPhone)** использует облако **Apple iCloud** с проприетарной базой данных **Apple CoreData** (`Chat.data`).
 
-Из-за различий в схемах данных, эпохах отсчета времени (Unix Epoch `1970` vs Apple Cocoa Epoch `2001`), алгоритмах связывания таблиц и хешировании файлов перенос переписок штатными средствами Viber невозможен.
+Из-за несовместимости схем таблиц, эпох отсчета времени (Unix Epoch `1970` vs Apple Cocoa Epoch `2001`), алгоритмов связывания внешних ключей и SHA-1 хеширования путей перенос переписок штатными средствами невозможен.
 
-**Viber Cross-Platform Transfer** устраняет эту проблему локально на вашем компьютере:
-1. Извлекает переписку из базы Android (или официального архива Google Drive, либо через No-Root ассистент Viber Desktop).
-2. Нормализует данные в промежуточную модель **Unified Intermediate Model (UIM)** с валидацией целостности.
-3. Конвертирует структуру данных в схему iOS CoreData (`Chat.data`), пересчитывает первичные ключи (`KeyRebalancer`), вычисляет SHA-1 хеши путей и генерирует бинарный манифест бэкапа Apple (`Manifest.db` + `bplist00`).
-4. Поддерживает **полноценный реверс-перенос (iPhone ➔ Android)** с упаковкой готового к восстановлению архива `viber_backup.zip`.
+**Viber Cross-Platform Transfer** решает эту задачу полностью локально на вашем ПК:
+1. Извлекает переписку через **No-Root ассистент Viber Desktop (ПК)**, из официального архива **Google Drive (`viber_backup.zip`)** или напрямую по **USB / ADB (при наличии Root-прав)**.
+2. Нормализует все сущности в строго типизированную промежуточную модель **Unified Intermediate Model (UIM)** с дедупликацией и валидацией.
+3. Конвертирует данные в схему iOS CoreData (`Chat.data`), пересчитывает первичные ключи (`KeyRebalancer`) без потери существующих чатов на iPhone, вычисляет SHA-1 хеши путей и обновляет бинарный реестр бэкапа Apple (`Manifest.db` + `bplist00`).
+4. Поддерживает **полный реверс-перенос (`iPhone ➔ Android`)** с формированием готового архива `viber_backup.zip` и пошаговым мастером восстановления на Android.
 
 > [!IMPORTANT]
-> **100% Приватность и Безопасность:** Перенос выполняется полностью локально на вашем ПК. Ваши личные сообщения, фотографии, видео и контакты **никогда не загружаются в сторонние облачные сервисы**.
+> **100% Приватность и Локальность:** Все операции выполняются исключительно на вашем компьютере. Ваши личные сообщения, фотографии, голосовые заметки и контакты **никогда не отправляются на сторонние серверы**.
 
 ---
 
 ### ✨ Ключевые возможности
 
 * ⇄ **Полная двусторонняя миграция (Bidirectional):**
-  * **Android ➔ iPhone:** Извлечение из Viber Desktop / Google Drive `viber_backup.zip` / локальной SQLite ➔ интеграция в незашифрованный бэкап iTunes.
-  * **iPhone ➔ Android:** Извлечение из бэкапа MobileSync ➔ формирование эталонного архива `viber_backup.zip` с пересчетом CRC32.
+  * **Android ➔ iPhone:** Извлечение из Viber Desktop / Google Drive `viber_backup.zip` / USB ADB (Root) ➔ слияние с незашифрованной резервной копией iTunes / Apple Devices.
+  * **iPhone ➔ Android (Реверс):** Извлечение из бэкапа iPhone MobileSync (`Chat.data` + медиа) ➔ упаковка эталонного архива `viber_backup.zip` с проверкой контрольных сумм CRC32 и инструкцией восстановления для Android.
 * 🛡️ **Гарантия целостности Zero Data Loss:**
-  * Сохранение всех типов сообщений: текст, эмодзи, стикеры, системные сервисные сообщения, вызовы.
-  * Сохранение медиафайлов через Content-Addressed Storage (CAS SHA-256).
-  * Корректный пересчет временных меток с субмиллисекундной точностью между Unix и Cocoa Epoch.
-  * Устранение дубликатов сообщений (дедупликация по составному хешу).
-* ⚡ **Режим No-Root Viber Desktop Assistant:**
-  * На современных версиях Android прямой доступ к `/data/data/com.viber.voip` закрыт без Root-прав.
-  * Наш инструмент интегрирован со штатной десктопной версией Viber: достаточно отсканировать QR-код на экране ПК, и приложение мгновенно заберет актуальную базу `viber.db`.
+  * Сохранение личных и групповых чатов, текстовых сообщений, эмодзи, стикеров, системных событий и звонков.
+  * Перенос фотографий, голосовых сообщений (`.m4a`), видео и документов через Content-Addressed Storage (CAS SHA-256).
+  * Субмиллисекундная точность конвертации времени между эпохами Unix и Apple Cocoa.
+* ⚡ **Два способа переноса БЕЗ Root-прав + поддержка прямого USB/ADB (Root):**
+  * **Без Root (Способ 1 — Viber Desktop):** Синхронизация смартфона с Viber на ПК по QR-коду за 10 секунд.
+  * **Без Root (Способ 2 — Архив Google Drive):** Прямая распаковка и миграция архива `viber_backup.zip`.
+  * **С Root-доступом (Способ 3 — USB / ADB):** Автоматическая проверка наличия `su` (`uid=0`), прямое извлечение `/data/data/com.viber.voip/databases/viber_messages` и инвентаризация медиафайлов в `/sdcard/Android/data/com.viber.voip/files/`.
 * 🍏 **Защита безопасности Apple Restore Safeguards:**
-  * Автоматическое обнаружение подключенных устройств и локальных резервных копий iTunes / MobileSync.
-  * Аппаратная проверка статуса шифрования: программа предотвращает повреждение зашифрованных резервных копий (`IsEncrypted: true`).
-  * Проверка и предупреждение о необходимости временного отключения службы *«Локатор» (Find My iPhone)* перед восстановлением.
+  * Автоматическое обнаружение резервных копий iPhone в системном каталоге `Apple Computer\MobileSync\Backup`.
+  * Блокировка модификации зашифрованных паролем копий (`IsEncrypted: true`) для предотвращения ошибок iTunes 14/54.
+  * Интерактивный мастер отключения службы *«Локатор» (Find My iPhone)* перед финальной прошивкой бэкапа.
+* 🤖 **Встроенный комплекс аппаратных эмуляторов (`Setup_Emulators.bat`):**
+  * Включает виртуальный сетевой демон **Google Pixel 8 Pro (Android 14)** по протоколу TCP ADB (`127.0.0.1:5555`) и эталонный виртуальный слепок **iPhone 15 Pro (iOS 18.1)** для iTunes MobileSync — позволяет протестировать весь цикл переноса на 100% без физических телефонов.
 * 🌐 **Двуязычный интерфейс (RU / EN):**
-  * Полноценная локализация графического интерфейса с мгновенным переключением языка по кнопке в шапке.
-* 📦 **Автономный запуск в 1 клик (Portable Single-EXE):**
-  * Скомпилированный бинарный файл `ViberTransfer.exe` запускается мгновенно без предварительной установки Node.js или дополнительных библиотек.
-* 🚀 **Экстремальная производительность:**
-  * Скорость потоковой обработки ядра превышает **68 000 сообщений в секунду**. База из 50 000 сообщений обрабатывается менее чем за 800 мс.
+  * Мгновенное переключение между русским и английским языками кнопкой `🌐 RU / EN` в шапке программы.
+* 📦 **Автономный запуск в 1 клик (`ViberTransfer.exe`):**
+  * Портативный исполняемый файл со встроенным движком Node.js и SQLite — не требует установки зависимостей.
 
 ---
 
-### 🚀 Быстрый старт
+### 🚀 Быстрый старт и скачивание
 
-#### Способ 1: Автономный запуск в 1 клик (Рекомендуется)
-Просто запустите файл **`ViberTransfer.exe`** в корне папки. Программа запустит локальный защищенный API-мост и автоматически откроет панель управления в вашем браузере по умолчанию.
+#### Вариант 1: Готовый портативный файл `ViberTransfer.exe` (Рекомендуется)
+1. Скачайте **`ViberTransfer.exe`** из раздела **[Последний релиз (Releases)](https://github.com/Suetzume/viber-transfer-pc/releases/latest)** (также доступен в правой панели репозитория GitHub).
+2. Запустите `ViberTransfer.exe` в один клик — программа автоматически поднимет локальный сервер и откроет интерфейс в браузере.
 
-#### Способ 2: Запуск через скрипт `Start_App.bat`
-Если вы предпочитаете запускать приложение с просмотром диагностических логов консоли:
+#### Вариант 2: Запуск из исходного кода через `Start_App.bat`
 ```bat
 Start_App.bat
 ```
-*(Скрипт автоматически принудительно устанавливает кодировку UTF-8 (CP 65001) и освобождает локальный порт 34567 от зависших процессов).*
+*(Скрипт автоматически включает кодировку UTF-8 `chcp 65001`, освобождает порт `34567` от старых процессов и открывает GUI).*
 
-#### Способ 3: Консольный запуск (CLI для серверов и автоматизации)
-```bash
-node src/cli/index.js --source ./backups/viber_backup.zip --target "C:/Users/.../MobileSync/Backup/<UDID>" --direction android-to-ios
+#### Вариант 3: Запуск с виртуальными эмуляторами Android 14 и iPhone 15 Pro
+```bat
+Setup_Emulators.bat
 ```
 
 ---
 
-### 📖 Пошаговое руководство пользователя
+### 📖 Пошаговая инструкция пользователя
 
-#### Сценарий А: Перенос с Android на iPhone (iOS)
+#### Сценарий А: Перенос с Android на iPhone (`Android ➔ iPhone`)
 
-##### Шаг 1: Получение истории чатов с Android
-В секции **«Шаг 1: Источник (Android)»** выберите удобный способ:
-1. **Рекомендуемый (Быстрый No-Root через Viber Desktop):**
-   * Нажмите фиолетовую кнопку **«Запустить установленный Viber Desktop»** (если Viber не установлен, откроется мастер установки).
-   * На вашем смартфоне Android откройте Viber: перейдите в меню **«Еще» ➔ значок QR-кода** в правом верхнем углу.
-   * Наведите камеру смартфона на экран монитора и подтвердите синхронизацию.
-   * Как только синхронизация завершится, выберите вкладку **«Viber Desktop (ПК)»** — база синхронизированных чатов будет подхвачена автоматически.
-2. **Через резервную копию Google Drive:**
-   * В приложении Viber на Android: *Настройки ➔ Учетная запись ➔ Резервное копирование ➔ Создать копию*.
-   * Скачайте файл архива `viber_backup.zip` с Google Диска и нажмите кнопку **«Выбрать архив Google Drive (zip)»**.
-3. **Прямой файл SQLite:**
-   * Если у вас есть root-доступ или извлеченный файл базы данных `viber_messages`, укажите к нему прямой путь.
+##### Шаг 1: Выбор источника переписки Android
+На **Шаге 1** доступны три вкладки в зависимости от вашего устройства:
+1. **Вкладка «💻 Viber Desktop (ПК)» — Рекомендуется (Без Root):**
+   * Нажмите кнопку **«🚀 Запустить установленный Viber Desktop»**.
+   * На телефоне Android откройте Viber: **Еще ➔ значок QR-кода** (в правом верхнем углу) и отсканируйте QR-код с экрана ноутбука.
+   * Нажмите **«Синхронизировать»** — программа автоматически обнаружит локальную базу чатов.
+2. **Вкладка «☁️ Архив Google Drive» — (Без Root):**
+   * В Viber на Android откройте: *Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование ➔ Создать копию*.
+   * Выберите скачанный архив `viber_backup.zip`.
+3. **Вкладка «📱 USB Смартфон (Root / ADB)» — (Требуется Root-доступ `su`):**
+   * ⚠️ **Важно:** Для прямого копирования текстовой базы `/data/data/com.viber.voip/databases/viber_messages` по кабелю USB **обязательно наличие Root-прав (`su`)** на телефоне.
+   * На обычных нерутированных телефонах система Android блокирует чтение системного раздела `/data/data/` (по ADB доступны только медиафайлы в `/sdcard/Android/data/com.viber.voip/files/`), о чем программа сразу предупредит в статусе устройства и предложит перейти на вкладку Viber Desktop или Google Drive.
 
-##### Шаг 2: Подключение и подготовка iPhone
-1. **Подключите iPhone к компьютеру** качественным USB-кабелем (Lightning или Type-C).
-2. **Разблокируйте экран iPhone.** На экране появится запрос: *«Доверять этому компьютеру?»*. Нажмите **«Доверять»** и введите ваш цифровой код-разблокировки.
-3. **Запустите программу iTunes** (или приложение *«Устройства Apple»* в Windows 11).
-4. Перейдите на страницу подключенного iPhone:
-   * В блоке *«Резервные копии»* выберите пункт **«Этот компьютер»**.
-   * ⚠️ **ОБЯЗАТЕЛЬНО:** Убедитесь, что галочка **«Зашифровать локальную резервную копию» СНЯТА**. (iOS не позволяет модифицировать базу данных внутри бэкапа, если он зашифрован аппаратным паролем).
-   * Нажмите кнопку **«Создать копию сейчас»** и дождитесь завершения бэкапа.
-5. В интерфейсе Viber Transfer нажмите кнопку **«🔄 Сканировать устройства»**. Приложение автоматически обнаружит бэкап iPhone в системной папке MobileSync и подтвердит готовность зеленым индикатором.
+##### Шаг 2: Подключение и подготовка iPhone на ПК
+1. Подключите iPhone кабелем Lightning / USB-C к ноутбуку, разблокируйте экран и нажмите **«Доверять этому компьютеру»**.
+2. Откройте **iTunes** (или приложение *«Устройства Apple»* из Microsoft Store).
+3. В разделе *«Резервные копии»* выберите **«Этот компьютер»**.
+4. ⚠️ **КРИТИЧЕСКИ ВАЖНО:** Снимите галочку **«Зашифровать локальную резервную копию»** (копия НЕ должна иметь пароля).
+5. Нажмите **«Создать копию сейчас»**, а после завершения нажмите **«🔄 Сканировать устройства»** в нашей программе — бэкап iPhone определится автоматически.
 
-##### Шаг 3: Миграция и восстановление на телефон
-1. Нажмите большую кнопку **«🚀 Начать перенос данных»**.
-2. Следите за консолью переноса в реальном времени (чтение таблиц ➔ нормализация UIM ➔ пересчет ключей Z_PK ➔ генерация Manifest.db).
-3. По завершении миграции появится карточка успешного выполнения со статистикой перенесенных чатов, сообщений и вложений.
-4. **Финальное восстановление на iPhone:**
-   * На iPhone перейдите в *Настройки ➔ [Ваше Имя / Apple ID] ➔ Локатор ➔ Найти iPhone* и временно **отключите функцию «Найти iPhone»** (это стандартное требование Apple для восстановления бэкапов).
-   * В программе iTunes нажмите кнопку **«Восстановить из копии…»**, выберите созданный бэкап и подтвердите восстановление.
-   * После перезагрузки iPhone откройте Viber, подтвердите вход по вашему номеру телефона — все ваши чаты, история сообщений и контакты будут восстановлены!
-   * После проверки включите обратно функцию «Найти iPhone».
+##### Шаг 3: Запуск миграции и восстановление на iPhone
+1. Нажмите **«Начать перенос данных»** и дождитесь отчета **100% (Zero Data Loss Verified)**.
+2. На iPhone временно отключите *Локатор*: *Настройки ➔ [Ваше имя] ➔ Локатор ➔ Найти iPhone ➔ Выключить*.
+3. В iTunes нажмите **«Восстановить из копии...»** и выберите обновленный бэкап.
+4. После перезагрузки iPhone откройте Viber — вся ваша переписка, группы и медиафайлы будут на месте!
 
 ---
 
-#### Сценарий Б: Реверс-перенос с iPhone на Android
+#### Сценарий Б: Обратный перенос с iPhone на Android (`iPhone ➔ Android`)
 
-1. В верхней части приложения нажмите кнопку **«⇄ Направление: iPhone ➔ Android»**.
-2. В **Шаге 1** выберите незашифрованную резервную копию iPhone.
-3. В **Шаге 2** выберите целевую папку на компьютере для сохранения архива Android.
-4. Нажмите **«🚀 Начать реверс-миграцию данных»**.
-5. Программа извлечет `Chat.data`, конвертирует таблицы и временные метки в формат Android и упакует эталонный архив **`viber_backup.zip`**.
-6. Нажмите **«📂 Открыть папку с результатом»**. Полученный архив готов к загрузке в облако Google Drive или импорту на смартфон Android.
+1. Нажмите кнопку переключения направления **`⇄ Направление: iPhone ➔ Android`** в верхней части окна.
+2. На **Шаге 1** выберите папку незашифрованного бэкапа iPhone (подставляется автоматически из `MobileSync\Backup`).
+3. На **Шаге 2** укажите путь сохранения итогового архива `viber_backup.zip` (по умолчанию `Downloads\viber_backup.zip`).
+4. Нажмите **«Начать перенос данных»**.
+5. По завершении появится **«Финальный пошаговый мастер восстановления на Android»**:
+   * Нажмите **«📂 Открыть папку с архивом Android в Проводнике»**.
+   * Загрузите созданный `viber_backup.zip` в хранилище Google Drive или перенесите на смартфон Android.
+   * В приложении Viber на Android откройте: *Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование Viber ➔ Восстановить*.
 
 ---
 
@@ -139,26 +141,26 @@ node src/cli/index.js --source ./backups/viber_backup.zip --target "C:/Users/...
 ```mermaid
 flowchart TD
     subgraph Источники Android
-        A1["Android SQLite (viber_messages)"]
+        A1["Viber Desktop PC (viber.db)"]
         A2["Google Drive ZIP (viber_backup.zip)"]
-        A3["Viber Desktop PC (viber.db)"]
+        A3["USB / ADB Smartphone (Root / Emulator)"]
     end
 
     subgraph Слой 3: Адаптеры платформ
-        AD1["AndroidAdapter: парсинг сообщений, контактов, чатов"]
+        AD1["AndroidAdapter: парсинг сообщений, контактов, вложений"]
     end
 
     subgraph Слой 2: Ядро валидации
-        UIM["Unified Intermediate Model (UIM)\n- Стандартизация типов сообщений\n- Дедупликация\n- Sub-millisecond Time Engine"]
+        UIM["Unified Intermediate Model (UIM)\n- Нормализация типов и контактов\n- Дедупликация\n- Sub-millisecond TimeEngine (1970 ⇄ 2001)"]
     end
 
-    subgraph Слой 3 & 4: Формирование iOS
-        IA1["iOS CoreData Adapter\n- KeyRebalancer (сдвиг Z_PK)\n- Конвертация в Chat.data"]
-        MB["ManifestBuilder\n- Хеширование SHA-1 путей\n- Генерация bplist00\n- Обновление Manifest.db"]
+    subgraph Слой 3 & 4: Формирование iOS / Android
+        IA1["iOS CoreData Adapter & KeyRebalancer\n- Сдвиг Z_PK без коллизий\n- Генерация Chat.data + CAS Media"]
+        MB["ManifestBuilder & ZipHandler\n- SHA-1 путей + генератор bplist00\n- Обновление Manifest.db / viber_backup.zip"]
     end
 
-    subgraph Цель: Apple iPhone
-        TG["Резервная копия iTunes / MobileSync\n(Готова к восстановлению через iTunes)"]
+    subgraph Целевое устройство
+        TG["Резервная копия iTunes MobileSync\nили архив Android viber_backup.zip"]
     end
 
     A1 --> AD1
@@ -170,59 +172,41 @@ flowchart TD
     MB --> TG
 ```
 
-#### Описание слоев архитектуры:
-* **Layer 1 (Foundation):** `TimeEngine` (двусторонний перевод Unix Epoch $\leftrightarrow$ Cocoa Epoch с микросекундной точностью), `HashService` (SHA-1 хеширование для Manifest.db и CAS SHA-256 для медиафайлов).
-* **Layer 2 (UIM):** Строгие схемы `UIMChatSession`, `UIMMessage`, `UIMContact` и `UIMAttachment` с валидатором инвариантов и дедупликацией.
-* **Layer 3 (Adapters):** Двусторонние адаптеры `AndroidAdapter` и `IOSAdapter` с механизмом сдвига первичных ключей `KeyRebalancer` для предотвращения коллизий автоинкремента в CoreData.
-* **Layer 4 (Manifest & Storage):** `ManifestBuilder` для внедрения файлов в реестр бэкапа Apple, генератор бинарных списков свойств `bplist00` и автономный упаковщик `ZipHandler`.
-* **Layer 5 (Pipeline & Engine):** Сквозной `MigrationEngine`, поддерживающий как прямое, так и реверсивное направление миграции со стримингом прогресса.
-* **Layer 6 (Hardware & Server):** Детекторы устройств `adb-connector.js` и `ios-connector.js`, REST & Server-Sent Events (SSE) мост `bridge-server.js`.
-* **Layer 7 (UI & Bilingual Engine):** Адаптивный веб-интерфейс с поддержкой темного режима, валидацией на лету и мгновенным переключением языков RU/EN.
-
 ---
 
-### 🧪 Тестирование и надежность
+### 🧪 Тестирование, эмуляторы и бенчмарк (84 / 84 тестов — 100% PASS)
 
-Проект разработан по методологии **TDD (Test-Driven Development)** с соблюдением принципа гарантированной сохранности данных (Zero Data Loss).
-
-Все 21 тестовый сьют выполняются встроенным тест-раннером Node.js:
 ```powershell
-# Развертывание виртуальных эмуляторов Android (Pixel 8 Pro ADB) и iPhone 15 Pro (iTunes MobileSync)
+# Развертывание виртуальных эмуляторов Android 14 (Pixel 8 Pro ADB) и iPhone 15 Pro (iOS 18.1 MobileSync)
 Setup_Emulators.bat
+# Очистка виртуальных профилей эмуляторов после проверки
+npm run emulators:clean
 
-# Запуск всех 84 тестов
+# Запуск всех 84 тестов (21 тестовый сьют)
 Run_Tests.bat
-# или через npm
-npm test
-```
-
-```powershell
-# Запуск нагрузочного стресс-теста на 50 000 сообщений
+# Запуск стресс-теста на 50 000 сообщений (~780 мс, 63 800+ сообщ./сек)
 Run_Benchmark.bat
-# или через npm
-npm run benchmark
 ```
 
-| Тестовый сьют | Описание проверки | Статус |
+| Тестовый сьют | Проверяемая подсистема | Статус |
 |:---|:---|:---:|
-| `foundation.test.js` | Преобразование эпох Unix/Cocoa, SHA-1, CAS хеши | ✅ PASS |
-| `android-adapter.test.js` | Импорт, экспорт и Round-Trip точность Android SQLite | ✅ PASS |
-| `ios-adapter.test.js` | CoreData генерация, KeyRebalancer Z_PK, Round-Trip iOS | ✅ PASS |
-| `manifest-builder.test.js` | Генерация bplist00, обновление Manifest.db | ✅ PASS |
-| `zip-handler.test.js` | CRC32 проверка, упаковка и распаковка viber_backup.zip | ✅ PASS |
-| `migration-engine.test.js` | Сквозная склейка пайплайна (Zero Data Loss) | ✅ PASS |
+| `foundation.test.js` | Преобразование эпох Unix/Cocoa, SHA-1, CAS SHA-256 хеши, UIM валидатор | ✅ PASS |
+| `android-adapter.test.js` | Импорт, экспорт и 100% Round-Trip точность Android SQLite | ✅ PASS |
+| `ios-adapter.test.js` | CoreData генерация, KeyRebalancer Z_PK, 100% Round-Trip iOS | ✅ PASS |
+| `manifest-builder.test.js` | Генерация бинарных `bplist00`, обновление `Manifest.db`, `ZipHandler` CRC32 | ✅ PASS |
+| `migration-engine.test.js` | Сквозная двусторонняя миграция (Zero Data Loss Guarantee) | ✅ PASS |
 | `bridge-server.test.js` | REST API эндпоинты, обработка ошибок, SSE стриминг | ✅ PASS |
-| `devices.test.js` | Аппаратный опрос ADB, Apple MobileSync, статус служб | ✅ PASS |
-| `wizard-stage2.test.js` | Интерактивный визард, работа с реальными файлами | ✅ PASS |
-| `stage3-desktop-assistant.test.js` | Автообнаружение профилей Viber Desktop, запуск процесса | ✅ PASS |
-| `stage4-media-transfer.test.js` | Извлечение архивов Google Drive, парсинг сжатых баз | ✅ PASS |
-| `stage5-apple-guards.test.js` | Проверка шифрования бэкапа, защита Find My, запуск проводника | ✅ PASS |
-| `stage6-reverse-migration.test.js` | Полный цикл реверс-миграции iOS ➔ Android | ✅ PASS |
-| `stage7-i18n.test.js` | Двуязычный интерфейс RU/EN, полнота словарей I18N, no-cache | ✅ PASS |
-| `stage8-emulator-e2e.test.js` | Виртуальные эмуляторы Android ADB (Pixel 8 Pro) & iPhone 15 Pro MobileSync | ✅ PASS |
-| `standalone-exe.test.js` | Запуск и сетевая доступность ViberTransfer.exe | ✅ PASS |
-| `stress-benchmark.test.js` | Стресс-тест на высокой нагрузке (68 000+ сообщ./сек) | ✅ PASS |
-| **ИТОГО** | **84 теста / 21 сьют** | **100% PASS** |
+| `devices.test.js` | Аппаратный опрос ADB (`hasRoot`, медиа), Apple MobileSync, статус служб | ✅ PASS |
+| `wizard-stage2.test.js` | Интерактивный 3-шаговый мастер, реальная миграция файлов и архивов | ✅ PASS |
+| `stage3-desktop-assistant.test.js` | Автообнаружение профилей Viber Desktop, проверка заголовка SQLite | ✅ PASS |
+| `stage4-media-transfer.test.js` | Сквозной перенос медиавложений (фото, аудио, документы) через CAS | ✅ PASS |
+| `stage5-apple-guards.test.js` | Детекция шифрования iTunes (`IsEncrypted`), защита Find My, Проводник | ✅ PASS |
+| `stage6-reverse-migration.test.js` | Реверс-миграция `iPhone ➔ Android` с упаковкой `viber_backup.zip` | ✅ PASS |
+| `stage7-i18n.test.js` | Двуязычный интерфейс `RU ⇄ EN`, мастер Android, баннер требования Root | ✅ PASS |
+| `stage8-emulator-e2e.test.js` | Сквозной E2E-тест виртуальных эмуляторов Pixel 8 Pro (ADB) и iPhone 15 Pro | ✅ PASS |
+| `standalone-exe.test.js` | Автономный запуск и проверка HTTP/GUI бинарного файла `ViberTransfer.exe` | ✅ PASS |
+| `stress-benchmark.test.js` | Нагрузочный тест высокой производительности (63 000+ сообщений/сек) | ✅ PASS |
+| **ИТОГО** | **84 теста / 21 тестовый сьют** | **100% PASS** |
 
 ---
 
@@ -233,129 +217,129 @@ npm run benchmark
 
 ### 📌 About The Project
 
-The official **Viber** mobile messaging client does not support direct cross-platform chat transfer between Android and Apple iOS:
-* **Android** backs up chat databases exclusively to **Google Drive** app data storage as compressed ZIP archives containing SQLite databases (`viber_messages`).
-* **iOS (iPhone)** saves chat histories to **Apple iCloud** using proprietary Apple **CoreData** schemas (`Chat.data`).
+The official **Viber** mobile application does not support direct cross-platform chat history transfer between Android and Apple iOS:
+* **Android** backs up databases exclusively to **Google Drive** as compressed ZIP archives containing relational SQLite tables (`viber_messages`).
+* **iOS (iPhone)** stores backups in **Apple iCloud** using proprietary **Apple CoreData** SQLite schemas (`Chat.data`).
 
-Because of incompatible database schemas, epoch offsets (Unix Epoch `1970` vs Apple Cocoa Epoch `2001`), differing foreign key constraints, and cryptographic file path hashing, users switching between Android and iPhone are typically forced to lose years of precious message history.
+Due to incompatible database schemas, epoch offsets (Unix Epoch `1970` vs Apple Cocoa Epoch `2001`), foreign key structures, and SHA-1 virtual path hashing inside Apple backups, users switching platforms are normally forced to lose their chat histories.
 
-**Viber Cross-Platform Transfer** solves this fundamental cross-platform incompatibility right on your local PC:
-1. Extracts conversations from Android SQLite, Google Drive backups, or via the No-Root Viber Desktop Assistant.
-2. Normalizes records into a strictly validated **Unified Intermediate Model (UIM)**.
-3. Compiles the dataset into an authentic iOS CoreData SQLite layout (`Chat.data`), rebalancing table primary keys (`KeyRebalancer`), calculating SHA-1 file path identifiers, and generating standard Apple binary property lists (`bplist00` + `Manifest.db`).
-4. Offers **full bidirectional support (iPhone ➔ Android)**, outputting official-spec `viber_backup.zip` archives ready for Google Drive restore.
+**Viber Cross-Platform Transfer** bridges this gap 100% locally on your Windows PC:
+1. Extracts chat history via the **No-Root Viber Desktop Assistant**, from an official **Google Drive archive (`viber_backup.zip`)**, or directly over **USB / ADB (for Rooted phones)**.
+2. Normalizes all records into a strictly validated **Unified Intermediate Model (UIM)** with automatic message deduplication.
+3. Compiles the dataset into an authentic iOS CoreData SQLite database (`Chat.data`), dynamically shifting primary keys (`KeyRebalancer`) to preserve existing iPhone chats, calculating SHA-1 file IDs, and updating Apple's `Manifest.db` with binary property lists (`bplist00`).
+4. Supports **full reverse migration (`iPhone ➔ Android`)**, generating official-spec `viber_backup.zip` archives with a dedicated Android restore guide.
 
 > [!IMPORTANT]
-> **Complete Data Privacy:** All operations execute 100% locally on your computer. Your conversations, photos, videos, and contacts are **never transmitted over the internet or uploaded to any third-party cloud**.
+> **100% Local & Private:** All conversions run locally on your machine. Your private messages, photos, voice notes, and contacts are **never uploaded to any third-party server or cloud**.
 
 ---
 
 ### ✨ Key Features
 
-* ⇄ **Full Bidirectional Migration:**
-  * **Android ➔ iPhone:** Extract from Viber Desktop / Google Drive `viber_backup.zip` / local SQLite ➔ inject into unencrypted iTunes backup.
-  * **iPhone ➔ Android:** Extract from MobileSync backup ➔ package standard `viber_backup.zip` with verified CRC32 checksums.
+* ⇄ **True Bidirectional Migration:**
+  * **Android ➔ iPhone:** Extract from Viber Desktop / Google Drive `viber_backup.zip` / USB ADB (Root) ➔ merge seamlessly into an unencrypted iTunes / Apple Devices backup.
+  * **iPhone ➔ Android (Reverse):** Extract from iPhone MobileSync backup (`Chat.data` + media) ➔ pack a verified `viber_backup.zip` archive with CRC32 integrity checks and step-by-step Android restore instructions.
 * 🛡️ **Zero Data Loss Guarantee:**
-  * Complete support for text messages, emojis, media attachments, system messages, and group discussions.
-  * Content-Addressed Storage (CAS SHA-256) ensures media integrity.
-  * Bidirectional sub-millisecond timestamp precision across Unix and Cocoa epochs.
-  * Automatic deduplication of identical messages.
-* ⚡ **No-Root Viber Desktop Assistant:**
-  * Modern Android versions restrict direct access to app private data folders without root privileges.
-  * Our utility leverages the official Viber Desktop client: scan a single QR code on your PC screen, and chats are automatically fetched and transferred.
+  * Preserves 1-on-1 chats, group conversations, text messages, emojis, stickers, system events, and call logs.
+  * Transfers photos, voice messages (`.m4a`), videos, and documents via Content-Addressed Storage (CAS SHA-256).
+  * Sub-millisecond timestamp conversion between Unix Epoch and Apple Cocoa Epoch.
+* ⚡ **Two No-Root Methods + Direct USB/ADB (Root) Support:**
+  * **No-Root Method 1 (Viber Desktop Sync):** Pair your phone with Viber Desktop via QR code in 10 seconds.
+  * **No-Root Method 2 (Google Drive Archive):** Directly import your downloaded `viber_backup.zip`.
+  * **Rooted Method 3 (USB / ADB):** Automatically checks for superuser privileges (`su -c id`), pulls `/data/data/com.viber.voip/databases/viber_messages` on rooted devices, and inventories accessible media files in `/sdcard/Android/data/com.viber.voip/files/` even on non-rooted phones.
 * 🍏 **Apple MobileSync & Restore Safeguards:**
-  * Automatic hardware scanning for connected iPhones and local iTunes / Apple Devices backups.
-  * Encryption detection: prevents accidental corruption of password-protected backups (`IsEncrypted: true`).
-  * Automatic warnings for temporarily disabling *Find My iPhone* prior to restore.
-* 🌐 **Bilingual User Interface (EN / RU):**
-  * One-click dynamic language toggle right in the header bar.
-* 📦 **Portable Single-EXE Distribution:**
-  * Single standalone executable (`ViberTransfer.exe`) runs out of the box with zero runtime dependencies.
-* 🚀 **Blazing Fast Performance:**
-  * High-throughput conversion engine processes **68,000+ messages per second**. A 50,000-message database is converted in under 800 ms.
+  * Auto-detects iPhone backups in `Apple Computer\MobileSync\Backup`.
+  * Blocks modification of password-encrypted iTunes backups (`IsEncrypted: true`) to prevent iTunes Restore Errors 14/54.
+  * Displays clear reminders to temporarily disable *Find My iPhone* prior to restoring.
+* 🤖 **Built-in Virtual Hardware Emulators (`Setup_Emulators.bat`):**
+  * Ships with a binary-protocol **Google Pixel 8 Pro (Android 14) TCP ADB Daemon** (`127.0.0.1:5555`) and a synthetic unencrypted **iPhone 15 Pro (iOS 18.1) iTunes MobileSync Backup** so you can verify full bidirectional transfers without physical devices.
+* 🌐 **Bilingual UI (EN / RU):**
+  * Instant 1-click language switch (`🌐 EN / RU`) in the top navigation bar.
+* 📦 **1-Click Portable Executable (`ViberTransfer.exe`):**
+  * Self-contained Windows executable requiring zero external dependencies.
 
 ---
 
-### 🚀 Getting Started
+### 🚀 Quick Start & Download
 
 #### Option 1: 1-Click Portable Executable (Recommended)
-Simply launch **`ViberTransfer.exe`** in the root directory. It starts the local bridge server and opens the intuitive GUI in your default web browser automatically.
+1. Download **`ViberTransfer.exe`** from the **[Latest Release page](https://github.com/Suetzume/viber-transfer-pc/releases/latest)** (also linked in the right-hand **"Releases"** sidebar on GitHub).
+2. Double-click `ViberTransfer.exe` — it starts the local bridge server and opens the interface in your browser.
 
-#### Option 2: Scripted Launch via `Start_App.bat`
-To run with live terminal diagnostics:
+#### Option 2: Run via `Start_App.bat`
 ```bat
 Start_App.bat
 ```
-*(Automatically ensures UTF-8 code page chcp 65001 and frees port 34567 if previously held).*
 
-#### Option 3: Headless CLI Mode
-```bash
-node src/cli/index.js --source ./backups/viber_backup.zip --target "C:/Users/.../MobileSync/Backup/<UDID>" --direction android-to-ios
+#### Option 3: Launch Virtual Android 14 & iPhone 15 Pro Emulators
+```bat
+Setup_Emulators.bat
 ```
 
 ---
 
 ### 📖 Step-by-Step User Walkthrough
 
-#### Scenario A: Android to iPhone Migration
+#### Scenario A: Android to iPhone Migration (`Android ➔ iPhone`)
 
-##### Step 1: Extract Viber Data from Android
-Under **"Step 1: Select Viber Source"**, choose your preferred method:
-1. **Recommended (No-Root Viber Desktop Sync):**
-   * Click the purple button **"Launch Installed Viber Desktop"** (if not installed, setup wizard will open).
-   * On your Android phone, open Viber: tap **More ➔ QR Code icon** in the top-right corner.
-   * Point the camera at the PC screen and tap **Sync**.
-   * Once synced, switch to the **"Viber Desktop (PC)"** tab in our app — the local database is detected automatically!
-2. **From Google Drive Backup:**
-   * In Viber on Android: *Settings ➔ Account ➔ Viber Backup ➔ Back Up Now*.
-   * Download `viber_backup.zip` from your Google Drive and select it via **"Select Google Drive Archive (zip)"**.
-3. **Direct File / Root Access:**
-   * Provide the direct path to your extracted `viber_messages` SQLite database.
+##### Step 1: Select Android Source
+Choose one of the source tabs on **Step 1**:
+1. **`💻 Viber Desktop (PC)` Tab — Recommended (No-Root):**
+   * Click **"🚀 Launch Installed Viber Desktop"**.
+   * On your Android phone, open Viber: tap **More ➔ QR Code icon** (top-right corner) and scan the QR code on your PC monitor.
+   * Tap **"Sync"** — our application will automatically detect the synced database.
+2. **`☁️ Google Drive Archive` Tab — (No-Root):**
+   * In Viber on Android: *More ➔ Settings ➔ Account ➔ Viber Backup ➔ Back Up Now*.
+   * Select your downloaded `viber_backup.zip` archive.
+3. **`📱 USB Smartphone (Root / ADB)` Tab — (Requires Root `su`):**
+   * ⚠️ **Important:** Direct extraction of the private text database (`/data/data/com.viber.voip/databases/viber_messages`) over a USB cable strictly **requires Root access (`su`)** on the smartphone.
+   * On standard non-rooted phones, Android OS blocks access to `/data/data/` (only media files in `/sdcard/Android/data/com.viber.voip/files/` are accessible via ADB). The UI clearly displays your phone's live Root status and guides non-rooted users to the Viber Desktop or Google Drive tabs.
 
-##### Step 2: Prepare and Connect iPhone
-1. **Connect your iPhone to the PC** using an original Lightning or USB-C cable.
-2. **Unlock your iPhone screen.** When the *“Trust This Computer?”* alert appears, tap **Trust** and enter your passcode.
-3. **Open iTunes** (or the *Apple Devices* app on Windows 11).
-4. Navigate to your iPhone device summary:
-   * Under *Backups*, choose **"This Computer"**.
-   * ⚠️ **CRITICAL:** Ensure **"Encrypt local backup" is UNCHECKED** (backups must NOT have a password, as iOS hardware prevents external file modification in encrypted backups).
-   * Click **"Back Up Now"** and wait for completion.
-5. In Viber Transfer, click **"🔄 Scan Devices"**. The application will automatically detect your fresh iPhone backup in MobileSync and display a green status indicator.
+##### Step 2: Prepare & Back Up iPhone on PC
+1. Connect your iPhone to the computer via USB cable, unlock the screen, and tap **"Trust This Computer"**.
+2. Open **iTunes** (or the *Apple Devices* app on Windows 11).
+3. Under *Backups*, select **"This Computer"**.
+4. ⚠️ **CRITICAL:** Uncheck **"Encrypt local backup"** (the backup must NOT be password-protected).
+5. Click **"Back Up Now"**, then click **"🔄 Scan Devices"** in Viber Transfer — your iPhone backup will be selected automatically.
 
-##### Step 3: Migrate and Restore
-1. Click **"🚀 Start Migration Pipeline"**.
-2. Watch real-time streaming progress logs.
-3. Upon completion, a summary card will display the exact number of migrated chats, messages, and attachments.
-4. **Final Restore to iPhone:**
-   * On your iPhone, temporarily turn off Find My: *Settings ➔ [Your Name] ➔ Find My ➔ Find My iPhone ➔ OFF*.
-   * In iTunes, click **"Restore Backup…"** and select the modified backup.
-   * Once the iPhone reboots, open Viber and activate your phone number. All your messages, contacts, and media will be waiting for you!
-   * Re-enable Find My iPhone once verified.
+##### Step 3: Run Migration & Restore to iPhone
+1. Click **"Start Data Migration"** and wait for the **100% (Zero Data Loss Verified)** summary.
+2. On your iPhone, temporarily turn off *Find My iPhone*: *Settings ➔ [Your Name] ➔ Find My ➔ Find My iPhone ➔ OFF*.
+3. In iTunes, click **"Restore Backup..."** and choose the updated backup.
+4. Once the iPhone reboots, open Viber — all migrated chats, groups, and media attachments will be ready!
 
 ---
 
-#### Scenario B: iPhone to Android (Reverse Migration)
+#### Scenario B: Reverse Migration from iPhone to Android (`iPhone ➔ Android`)
 
-1. Click the **⇄ Direction Switcher** at the top of the interface to switch to `iPhone ➔ Android`.
-2. Select your unencrypted iPhone backup folder.
-3. Choose an output destination on your computer.
-4. Click **"🚀 Start Migration Pipeline"**.
-5. The engine converts `Chat.data` to Android schema and packs a standard **`viber_backup.zip`**.
-6. Click **"📂 Open Result Folder"** and upload the archive to Google Drive or copy it to your Android device for instant restore.
+1. Click the **`⇄ Direction: iPhone ➔ Android`** button at the top of the window.
+2. On **Step 1**, select your unencrypted iPhone backup folder (auto-detected from `MobileSync\Backup`).
+3. On **Step 2**, choose where to save the output `viber_backup.zip` archive.
+4. Click **"Start Data Migration"**.
+5. Follow the **"Final Step-by-Step Android Restore Guide"** displayed on the completion card:
+   * Click **"📂 Open Android Archive Folder in Explorer"**.
+   * Upload `viber_backup.zip` to Google Drive or copy it to your Android phone.
+   * Open Viber on Android ➔ *More ➔ Settings ➔ Account ➔ Viber Backup ➔ Restore*.
 
 ---
 
-### 💻 Developer Guide & Building from Source
+### 💻 Developer Guide & Commands
 
 ```bash
 # Clone the repository
 git clone https://github.com/Suetzume/viber-transfer-pc.git
 cd viber-transfer-pc
 
-# Run unit & integration tests
+# Provision Virtual Android 14 (ADB) & iPhone 15 Pro (iOS 18.1 MobileSync) Emulators
+npm run emulators
+
+# Clean up virtual emulator profiles
+npm run emulators:clean
+
+# Run all 84 unit, integration & E2E tests (21 test suites)
 npm test
 
-# Run high-volume stress benchmark (50,000 messages)
+# Run high-volume 50,000-message stress benchmark
 npm run benchmark
 
 # Compile standalone ViberTransfer.exe
@@ -364,11 +348,6 @@ npm run build:exe
 
 ---
 
-### 📄 License & Acknowledgments
+### 📄 License
 
-This project is open-source software licensed under the **[MIT License](LICENSE)**.
-
-Built with reference and inspiration from the open-source community:
-* `ViberDBViewer` & `iPhone-Backup-Analyzer-2`
-* `libimobiledevice` & Apple MobileSync specification
-* `watoi` & `WaBridge` architecture concepts
+Distributed under the **[MIT License](LICENSE)**.
