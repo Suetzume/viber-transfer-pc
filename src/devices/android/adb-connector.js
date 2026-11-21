@@ -228,6 +228,13 @@ function scanAndroidDevices(options = {}) {
       devices = parseAdbDevicesOutput(output);
     }
 
+    // Приоритет физическим USB-устройствам над локальными эмуляторами (127.0.0.1 / emulator-)
+    devices.sort((a, b) => {
+      const aIsEmu = a.serial.startsWith('127.0.0.1:') || a.serial.startsWith('emulator-');
+      const bIsEmu = b.serial.startsWith('127.0.0.1:') || b.serial.startsWith('emulator-');
+      return Number(aIsEmu) - Number(bIsEmu);
+    });
+
     const pnpPhones = devices.length === 0 ? detectWindowsPnpPhones() : [];
 
     // Дополнительный опрос параметров для обнаруженных устройств
@@ -243,6 +250,45 @@ function scanAndroidDevices(options = {}) {
           dev.viberInstalled = viberCheck.includes('package:');
         } catch (_) {
           dev.viberInstalled = false;
+        }
+
+        // Проверка версии Viber и доступных медиафайлов в /sdcard/Android/data/com.viber.voip/files
+        if (dev.viberInstalled) {
+          try {
+            const verOut = execSync(`"${adbExecutable}" -s ${dev.serial} shell "dumpsys package com.viber.voip | grep versionName"`, {
+              encoding: 'utf8',
+              stdio: ['pipe', 'pipe', 'ignore'],
+              timeout: 1500
+            }).trim();
+            const verMatch = verOut.match(/versionName=([^\s]+)/);
+            if (verMatch) dev.viberVersion = verMatch[1];
+          } catch (_) {}
+
+          try {
+            const countCmd = [
+              'ls /sdcard/Android/data/com.viber.voip/files/.image 2>/dev/null | wc -l',
+              'ls /sdcard/Android/data/com.viber.voip/files/.ptt 2>/dev/null | wc -l',
+              'ls /sdcard/Android/data/com.viber.voip/files/.video 2>/dev/null | wc -l',
+              'ls /sdcard/Android/data/com.viber.voip/files/.import 2>/dev/null | wc -l',
+              'ls /sdcard/Pictures/Viber 2>/dev/null | wc -l'
+            ].join('; ');
+            const countsOut = execSync(`"${adbExecutable}" -s ${dev.serial} shell "${countCmd}"`, {
+              encoding: 'utf8',
+              stdio: ['pipe', 'pipe', 'ignore'],
+              timeout: 2000
+            }).trim();
+            const nums = countsOut.split(/\r?\n/).map(s => parseInt(s.trim(), 10) || 0);
+            if (nums.length >= 5) {
+              const images = nums[0] + nums[4];
+              const voiceNotes = nums[1];
+              const videos = nums[2];
+              const documents = nums[3];
+              const totalMediaFiles = images + voiceNotes + videos + documents;
+              if (totalMediaFiles > 0) {
+                dev.adbMediaCounts = { images, voiceNotes, videos, documents, totalMediaFiles };
+              }
+            }
+          } catch (_) {}
         }
 
         // Проверка наличия базы Viber на эмуляторе/устройстве (/sdcard/viber_messages или /data/local/tmp/viber_messages)
@@ -279,8 +325,13 @@ function scanAndroidDevices(options = {}) {
           dev.osVersion = 'unknown';
         }
 
-        // Человекочитаемое имя производителя и модели
+        // Человекочитаемое маркетинговое имя производителя и модели (напр. Xiaomi 13 Ultra)
         try {
+          const marketName = execSync(`"${adbExecutable}" -s ${dev.serial} shell getprop ro.product.marketname`, {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'ignore'],
+            timeout: 1500
+          }).trim();
           const mfg = execSync(`"${adbExecutable}" -s ${dev.serial} shell getprop ro.product.manufacturer`, {
             encoding: 'utf8',
             stdio: ['pipe', 'pipe', 'ignore'],
@@ -291,7 +342,11 @@ function scanAndroidDevices(options = {}) {
             stdio: ['pipe', 'pipe', 'ignore'],
             timeout: 1500
           }).trim();
-          if (mfg && prodModel) {
+          if (marketName) {
+            dev.friendlyName = prodModel && !marketName.includes(prodModel)
+              ? `${marketName} (${prodModel})`
+              : marketName;
+          } else if (mfg && prodModel) {
             dev.friendlyName = `${mfg.toUpperCase()} ${prodModel}`;
           }
         } catch (_) {}

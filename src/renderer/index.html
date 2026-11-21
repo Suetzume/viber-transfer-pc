@@ -693,7 +693,7 @@
         </button>
         <button class="refresh-devices-btn" id="refreshBtn" onclick="refreshHardwareDevices()" title="Повторно сканировать USB-устройства и бэкапы">🔄 Сканировать устройства</button>
         <span class="api-badge" id="apiBadge">Бридж-сервер: В сети</span>
-        <span class="version-tag">v3.3.0 • Final Enterprise Release</span>
+        <span class="version-tag">v3.3.1 • Final Enterprise Release</span>
       </div>
     </header>
 
@@ -1040,7 +1040,7 @@
         scanDevicesActive: '⌛ Опрос USB...',
         serverOnline: 'Бридж-сервер: В сети (Online)',
         serverOffline: 'Сервер офлайн',
-        versionTag: 'v3.3.0 • Final Enterprise Release',
+        versionTag: 'v3.3.1 • Final Enterprise Release',
 
         directionAndroidToIos: 'Направление: Android ➔ iPhone',
         directionIosToAndroid: 'Направление: iPhone ➔ Android (Реверс)',
@@ -1141,11 +1141,17 @@
 
         successTitle: 'Миграция успешно завершена!',
         openBackupFolderBtn: '📂 Открыть папку бэкапа в Проводнике',
+        openAndroidResultFolderBtn: '📂 Открыть папку с архивом Android в Проводнике',
         restoreGuideHeader: 'Финальный пошаговый мастер восстановления на iPhone:',
         restoreStep1: '<strong>Отключите «Локатор»:</strong> В настройках iPhone откройте <em>[Ваше имя] ➔ Локатор ➔ Найти iPhone ➔ Выключить</em> (потребуется пароль Apple ID).',
         restoreStep2: '<strong>Подключите iPhone к ПК:</strong> Соедините телефон кабелем USB с компьютером и запустите <em>iTunes</em> (или <em>«Устройства Apple»</em>).',
         restoreStep3: '<strong>Восстановите резервную копию:</strong> Нажмите <strong>«Восстановить из копии...»</strong> и выберите наш обновленный бэкап.',
         restoreStep4: '<strong>Готово:</strong> После перезагрузки телефона откройте Viber — все чаты, сообщения и медиа будут на месте! После этого включите «Локатор» обратно.',
+        restoreGuideHeaderAndroid: 'Финальный пошаговый мастер восстановления на Android:',
+        restoreStep1Android: '<strong>Вариант А (Облако Google Drive):</strong> Загрузите созданный архив <code>viber_backup.zip</code> в резервное хранилище вашего аккаунта Google Диск.',
+        restoreStep2Android: '<strong>Вариант Б (Локальный перенос по USB / ADB):</strong> Перенесите архив <code>viber_backup.zip</code> (базу <code>viber_messages</code> и папку <code>media</code>) на смартфон Android или синхронизируйте через Viber Desktop.',
+        restoreStep3Android: '<strong>Восстановление в Viber на Android:</strong> Откройте Viber на телефоне ➔ <em>Еще ➔ Настройки ➔ Учетная запись ➔ Резервное копирование Viber ➔ Восстановить</em>.',
+        restoreStep4Android: '<strong>Готово:</strong> После завершения импорта все перенесенные с iPhone диалоги, сообщения и медиавложения появятся в Viber на вашем Android-смартфоне!',
         resetBtn: 'Выполнить новый перенос'
       },
       en: {
@@ -1155,7 +1161,7 @@
         scanDevicesActive: '⌛ Scanning USB...',
         serverOnline: 'Bridge Server: Online',
         serverOffline: 'Server Offline',
-        versionTag: 'v3.3.0 • Final Enterprise Release',
+        versionTag: 'v3.3.1 • Final Enterprise Release',
 
         directionAndroidToIos: 'Direction: Android ➔ iPhone',
         directionIosToAndroid: 'Direction: iPhone ➔ Android (Reverse)',
@@ -1256,11 +1262,17 @@
 
         successTitle: 'Migration Completed Successfully!',
         openBackupFolderBtn: '📂 Open Backup Folder in Explorer',
+        openAndroidResultFolderBtn: '📂 Open Android Archive Folder in Explorer',
         restoreGuideHeader: 'Final Step-by-Step iPhone Restore Guide:',
         restoreStep1: '<strong>Turn off "Find My":</strong> On iPhone go to <em>Settings ➔ [Your Name] ➔ Find My ➔ Find My iPhone ➔ Turn Off</em> (Apple ID password required).',
         restoreStep2: '<strong>Connect iPhone to PC:</strong> Connect phone via USB cable and launch <em>iTunes</em> (or <em>Apple Devices</em>).',
         restoreStep3: '<strong>Restore Backup:</strong> Click <strong>"Restore Backup..."</strong> and choose our updated backup.',
         restoreStep4: '<strong>Done:</strong> After phone reboots, open Viber — all chats, messages, and photos will be restored! Re-enable "Find My" afterwards.',
+        restoreGuideHeaderAndroid: 'Final Step-by-Step Android Restore Guide:',
+        restoreStep1Android: '<strong>Option A (Google Drive Cloud):</strong> Upload the generated <code>viber_backup.zip</code> archive to your Google Drive account backup storage.',
+        restoreStep2Android: '<strong>Option B (Direct USB / ADB Transfer):</strong> Copy <code>viber_backup.zip</code> (<code>viber_messages</code> database and <code>media</code> folder) to your Android phone or sync via Viber Desktop.',
+        restoreStep3Android: '<strong>Restore in Viber on Android:</strong> Open Viber on your Android phone ➔ <em>More ➔ Settings ➔ Account ➔ Viber Backup ➔ Restore</em>.',
+        restoreStep4Android: '<strong>Done:</strong> Once import finishes, all chats, messages, and media attachments migrated from iPhone will appear in Viber on your Android smartphone!',
         resetBtn: 'Perform New Migration'
       }
     };
@@ -1435,21 +1447,21 @@
       const statDurationLabel = document.getElementById('statDurationLabel');
       if (statDurationLabel) statDurationLabel.innerText = t.statDuration;
 
-      // Success Card
+      // Success Card (динамически зависит от направления: Android -> iPhone или iPhone -> Android)
       const successCardH3 = document.getElementById('successCardH3');
       if (successCardH3) successCardH3.innerText = t.successTitle;
       const openBackupFolderBtn = document.getElementById('openBackupFolderBtn');
-      if (openBackupFolderBtn) openBackupFolderBtn.innerText = t.openBackupFolderBtn;
+      if (openBackupFolderBtn) openBackupFolderBtn.innerText = isIosToAndroid ? t.openAndroidResultFolderBtn : t.openBackupFolderBtn;
       const restoreGuideHeader = document.getElementById('restoreGuideHeader');
-      if (restoreGuideHeader) restoreGuideHeader.innerText = t.restoreGuideHeader;
+      if (restoreGuideHeader) restoreGuideHeader.innerText = isIosToAndroid ? t.restoreGuideHeaderAndroid : t.restoreGuideHeader;
       const restoreStep1 = document.getElementById('restoreStep1');
-      if (restoreStep1) restoreStep1.innerHTML = t.restoreStep1;
+      if (restoreStep1) restoreStep1.innerHTML = isIosToAndroid ? t.restoreStep1Android : t.restoreStep1;
       const restoreStep2 = document.getElementById('restoreStep2');
-      if (restoreStep2) restoreStep2.innerHTML = t.restoreStep2;
+      if (restoreStep2) restoreStep2.innerHTML = isIosToAndroid ? t.restoreStep2Android : t.restoreStep2;
       const restoreStep3 = document.getElementById('restoreStep3');
-      if (restoreStep3) restoreStep3.innerHTML = t.restoreStep3;
+      if (restoreStep3) restoreStep3.innerHTML = isIosToAndroid ? t.restoreStep3Android : t.restoreStep3;
       const restoreStep4 = document.getElementById('restoreStep4');
-      if (restoreStep4) restoreStep4.innerHTML = t.restoreStep4;
+      if (restoreStep4) restoreStep4.innerHTML = isIosToAndroid ? t.restoreStep4Android : t.restoreStep4;
       const resetBtn = document.getElementById('resetBtn');
       if (resetBtn) resetBtn.innerText = t.resetBtn;
 
@@ -1509,8 +1521,12 @@
         document.getElementById('statDeduplicated').innerText = rep.deduplicatedCount || 0;
         document.getElementById('statDuration').innerText = (rep.durationMs || 0) + ' ms';
         
-        document.getElementById('successDesc').innerText = 
-          `Успешно перенесено ${rep.chatsCount} диалогов, ${rep.messagesCount} сообщений и ${rep.mediaCount || 0} медиавложений (Zero Data Loss Verified).`;
+        document.getElementById('successDesc').innerText = currentLang === 'en'
+          ? `Successfully migrated ${rep.chatsCount} chats, ${rep.messagesCount} messages, and ${rep.mediaCount || 0} media attachments (Zero Data Loss Verified).`
+          : `Успешно перенесено ${rep.chatsCount} диалогов, ${rep.messagesCount} сообщений и ${rep.mediaCount || 0} медиавложений (Zero Data Loss Verified).`;
+
+        // Обновляем инструкцию в карточке успеха под актуальное направление (iPhone или Android)
+        applyLanguage(currentLang);
 
         setTimeout(() => {
           document.getElementById('progressSection').style.display = 'none';
@@ -1601,7 +1617,16 @@
         srcStatus.className = 'status-dot';
         srcStatus.innerText = t.statusPhoneConnected;
         usbModelTitle.innerText = `📱 ${dev.friendlyName || dev.model}`;
-        usbModelMeta.innerText = `Android ${dev.osVersion} • ADB ${dev.serial} • Viber: ${dev.viberInstalled ? (currentLang === 'en' ? 'Installed ✓' : 'Установлен ✓') : (currentLang === 'en' ? 'Not found' : 'Не найден')}`;
+        const viberVer = dev.viberVersion ? ` v${dev.viberVersion}` : '';
+        const viberStateText = dev.viberInstalled
+          ? (currentLang === 'en' ? `Installed${viberVer} ✓` : `Установлен${viberVer} ✓`)
+          : (currentLang === 'en' ? 'Not found' : 'Не найден');
+        const mediaSummary = (dev.adbMediaCounts && dev.adbMediaCounts.totalMediaFiles > 0)
+          ? (currentLang === 'en'
+            ? ` • ADB Media: ${dev.adbMediaCounts.totalMediaFiles} files (${dev.adbMediaCounts.images} photos, ${dev.adbMediaCounts.voiceNotes} voice, ${dev.adbMediaCounts.videos} videos, ${dev.adbMediaCounts.documents} docs)`
+            : ` • Доступно по ADB: ${dev.adbMediaCounts.totalMediaFiles} медиа (${dev.adbMediaCounts.images} фото, ${dev.adbMediaCounts.voiceNotes} голос., ${dev.adbMediaCounts.videos} видео, ${dev.adbMediaCounts.documents} док.)`)
+          : '';
+        usbModelMeta.innerText = `Android ${dev.osVersion} • ADB ${dev.serial} • Viber: ${viberStateText}${mediaSummary}`;
         usbStateDot.className = 'status-dot';
         usbStateDot.innerText = t.authorized;
       } else if (dev && dev.state === 'unauthorized') {
@@ -1907,16 +1932,19 @@
     }
 
     async function openBackupFolder() {
-      const targetBackup = document.getElementById('targetBackupInput').value.trim();
-      if (!targetBackup) {
-        alert('Папка бэкапа не выбрана');
+      const isIosToAndroid = migrationDirection === 'ios-to-android';
+      const targetPath = isIosToAndroid
+        ? document.getElementById('targetAndroidZipInput').value.trim()
+        : document.getElementById('targetBackupInput').value.trim();
+      if (!targetPath) {
+        alert(currentLang === 'en' ? 'Target path is not selected' : 'Целевой путь не выбран');
         return;
       }
       try {
         const res = await fetch(`${API_BASE}/api/open-folder`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: targetBackup })
+          body: JSON.stringify({ path: targetPath })
         });
         const data = await res.json();
         if (!data.success) {
