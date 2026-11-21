@@ -78,6 +78,10 @@
 1. Скачайте **`ViberTransfer.exe`** из раздела **[Последний релиз (Releases)](https://github.com/Suetzume/viber-transfer-pc/releases/latest)** (также доступен в правой панели репозитория GitHub).
 2. Запустите `ViberTransfer.exe` в один клик — программа автоматически поднимет локальный сервер и откроет интерфейс в браузере.
 
+> [!NOTE]
+> ℹ️ **Если Windows Defender SmartScreen показал предупреждение при запуске:**
+> Ознакомьтесь с [простой инструкцией запуска в 2 клика](#-предупреждение-windows-defender-smartscreen-при-первом-запуске) ниже (это стандартная реакция Windows на бесплатные открытые программы без платного сертификата).
+
 #### Вариант 2: Запуск из исходного кода через `Start_App.bat`
 ```bat
 Start_App.bat
@@ -88,6 +92,38 @@ Start_App.bat
 ```bat
 Setup_Emulators.bat
 ```
+
+---
+
+<a name="-предупреждение-windows-defender-smartscreen-при-первом-запуске"></a>
+### 🛡️ Предупреждение Windows Defender SmartScreen при первом запуске
+
+При первом запуске скачанного файла `ViberTransfer.exe` операционная система Windows может показать окно защитника: **«Система Windows защитила ваш компьютер. Фильтр SmartScreen в Microsoft Defender предотвратил запуск неопознанного приложения...»**
+
+> [!NOTE]
+> **Почему это происходит?**
+> `ViberTransfer.exe` — это бесплатный проект с открытым исходным кодом (Open Source). Корпорация Microsoft требует наличия дорогостоящего ежегодного коммерческого сертификата цифровой подписи (EV Code Signing Certificate стоимостью от \$400/год), чтобы приложение запускалось без вопросов. Для бесплатных утилит Defender по умолчанию выводит предупреждение о «неизвестном издателе».
+> 
+> Программа **на 100% безопасна, не содержит скрытого кода, рекламы или вирусов**. Исходный код полностью открыт в данном репозитории.
+
+#### Как запустить программу (инструкция в 2 клика):
+
+1. В красном или синем окне SmartScreen нажмите на текстовую ссылку **«Подробнее»** (в левой части окна под описанием):
+<div align="center">
+  <img src="docs/images/smartscreen-step1.png" alt="Шаг 1: Нажмите Подробнее" width="460" />
+</div>
+
+<br />
+
+2. В появившемся расширенном окне отобразится издатель «Неизвестный издатель» и появится кнопка **«Выполнить в любом случае»** — нажмите её:
+<div align="center">
+  <img src="docs/images/smartscreen-step2.png" alt="Шаг 2: Нажмите Выполнить в любом случае" width="460" />
+</div>
+
+<br />
+
+> [!TIP]
+> **Альтернатива без предупреждений:** Вы также можете запустить проект напрямую из открытых исходников через командный файл [`Start_App.bat`](file:///C:/Users/mythi/OneDrive/Desktop/YYY/viber-transfer-pc/Start_App.bat) — в этом случае фильтр SmartScreen не задействуется.
 
 ---
 
@@ -275,6 +311,10 @@ Due to incompatible database schemas, epoch offsets (Unix Epoch `1970` vs Apple 
 1. Download **`ViberTransfer.exe`** from the **[Latest Release page](https://github.com/Suetzume/viber-transfer-pc/releases/latest)** (also linked in the right-hand **"Releases"** sidebar on GitHub).
 2. Double-click `ViberTransfer.exe` — it starts the local bridge server and opens the interface in your browser.
 
+> [!NOTE]
+> ℹ️ **If Windows Defender SmartScreen prompts a warning:**
+> Please review the [quick 2-click launch walkthrough](#-windows-defender-smartscreen-warning-on-first-launch) below (standard Windows behavior for open-source binaries without paid EV certificates).
+
 #### Option 2: Run via `Start_App.bat`
 ```bat
 Start_App.bat
@@ -284,6 +324,38 @@ Start_App.bat
 ```bat
 Setup_Emulators.bat
 ```
+
+---
+
+<a name="-windows-defender-smartscreen-warning-on-first-launch"></a>
+### 🛡️ Windows Defender SmartScreen Warning on First Launch
+
+When running `ViberTransfer.exe` for the first time, Windows Defender may display a warning dialog stating: **"Windows protected your PC / Microsoft Defender SmartScreen prevented an unrecognized app from starting..."**
+
+> [!NOTE]
+> **Why does this happen?**
+> `ViberTransfer.exe` is a completely free, community open-source project. Microsoft requires developers to purchase an expensive annual Extended Validation (EV) Code Signing Certificate (\$400+/year) to bypass this dialog out of the box. Without one, SmartScreen flags newly downloaded executable files from the web as "Unknown Publisher".
+>
+> This software is **100% clean, verified, and safe**. It contains zero adware, telemetry, or malicious payloads. All code is public and inspectable right here on GitHub.
+
+#### How to run the application (2 simple clicks):
+
+1. On the initial SmartScreen dialog, click the text link **"More info"** ("Подробнее") located under the description:
+<div align="center">
+  <img src="docs/images/smartscreen-step1.png" alt="Step 1: Click More Info" width="460" />
+</div>
+
+<br />
+
+2. The dialog will expand showing "Unknown Publisher". Click the **"Run anyway"** ("Выполнить в любом случае") button that appears:
+<div align="center">
+  <img src="docs/images/smartscreen-step2.png" alt="Step 2: Click Run anyway" width="460" />
+</div>
+
+<br />
+
+> [!TIP]
+> **Zero-Alert Alternative:** You can also run the application directly from source code by launching [`Start_App.bat`](file:///C:/Users/mythi/OneDrive/Desktop/YYY/viber-transfer-pc/Start_App.bat), which does not trigger Windows SmartScreen.
 
 ---
 
