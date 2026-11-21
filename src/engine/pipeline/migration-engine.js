@@ -45,18 +45,30 @@ function detectLocalViberDesktop() {
         const dbPath = path.join(viberPcDir, ent.name, 'viber.db');
         if (fs.existsSync(dbPath)) {
           const stat = fs.statSync(dbPath);
+          let isEncrypted = false;
+          try {
+            const fd = fs.openSync(dbPath, 'r');
+            const headerBuf = Buffer.alloc(16);
+            fs.readSync(fd, headerBuf, 0, 16, 0);
+            fs.closeSync(fd);
+            isEncrypted = !headerBuf.toString('ascii', 0, 15).startsWith('SQLite format 3');
+          } catch (_) {}
+
           accounts.push({
             phone: ent.name,
             dbPath,
             sizeBytes: stat.size,
             mtime: stat.mtime.toISOString(),
-            hasWal: fs.existsSync(dbPath + '-wal')
+            hasWal: fs.existsSync(dbPath + '-wal'),
+            isEncrypted
           });
         }
       }
     }
   } catch (_) {}
 
+  // Приоритет отдаем открытым SQLite базам (isEncrypted: false)
+  accounts.sort((a, b) => Number(a.isEncrypted) - Number(b.isEncrypted));
   return accounts;
 }
 

@@ -693,7 +693,7 @@
         </button>
         <button class="refresh-devices-btn" id="refreshBtn" onclick="refreshHardwareDevices()" title="Повторно сканировать USB-устройства и бэкапы">🔄 Сканировать устройства</button>
         <span class="api-badge" id="apiBadge">Бридж-сервер: В сети</span>
-        <span class="version-tag">v3.2.0 • Final Enterprise Release</span>
+        <span class="version-tag">v3.3.0 • Final Enterprise Release</span>
       </div>
     </header>
 
@@ -1040,7 +1040,7 @@
         scanDevicesActive: '⌛ Опрос USB...',
         serverOnline: 'Бридж-сервер: В сети (Online)',
         serverOffline: 'Сервер офлайн',
-        versionTag: 'v3.2.0 • Final Enterprise Release',
+        versionTag: 'v3.3.0 • Final Enterprise Release',
 
         directionAndroidToIos: 'Направление: Android ➔ iPhone',
         directionIosToAndroid: 'Направление: iPhone ➔ Android (Реверс)',
@@ -1155,7 +1155,7 @@
         scanDevicesActive: '⌛ Scanning USB...',
         serverOnline: 'Bridge Server: Online',
         serverOffline: 'Server Offline',
-        versionTag: 'v3.2.0 • Final Enterprise Release',
+        versionTag: 'v3.3.0 • Final Enterprise Release',
 
         directionAndroidToIos: 'Direction: Android ➔ iPhone',
         directionIosToAndroid: 'Direction: iPhone ➔ Android (Reverse)',
@@ -1656,6 +1656,13 @@
         detectText.innerHTML = t.desktopNotFoundBanner;
       }
 
+      // Автоподстановка найденного архива Google Drive (если имеется)
+      const archives = android.foundArchives || [];
+      const zipInput = document.getElementById('viberZipInput');
+      if (archives.length > 0 && zipInput && !zipInput.value) {
+        zipInput.value = archives[0].fullPath;
+      }
+
       // 2. Диагностика Apple / iTunes
       const ios = systemDevices.ios || {};
       const appleServices = ios.appleServices || {};
@@ -1673,6 +1680,8 @@
           : `Найдена резервная копия: <strong>${b.deviceName}</strong> (${b.iosVersion}), файлов: ${b.totalFiles}.`;
         const targetInput = document.getElementById('targetBackupInput');
         if (!targetInput.value) targetInput.value = b.backupPath;
+        const sourceIosInput = document.getElementById('sourceIosBackupInput');
+        if (sourceIosInput && !sourceIosInput.value) sourceIosInput.value = b.backupPath;
       } else if (appleServices.appleServicesAvailable) {
         targetStatus.className = 'status-dot warning';
         targetStatus.innerText = currentLang === 'en' ? 'Waiting for iTunes backup' : 'Ожидание копии в iTunes';
@@ -2053,9 +2062,19 @@
         summaryMode.style.color = 'var(--success)';
       } else {
         // USB Tab
-        summarySource.innerText = currentLang === 'en' ? '📱 Xiaomi 13 Ultra (select Desktop or Zip)' : '📱 Xiaomi 13 Ultra (выберите Desktop или Zip)';
-        summaryMode.innerText = t.summaryRealMode;
-        summaryMode.style.color = 'var(--text-muted)';
+        const adbDev = (systemDevices && systemDevices.android && systemDevices.android.devices && systemDevices.android.devices.length > 0)
+          ? systemDevices.android.devices[0]
+          : null;
+        if (adbDev && adbDev.isAuthorized && adbDev.extractedDbPath) {
+          summarySource.innerText = `📱 ADB (${adbDev.friendlyName || adbDev.model}): viber_messages`;
+          summaryMode.innerText = t.summaryRealMode;
+          summaryMode.style.color = 'var(--success)';
+          sourceSelected = true;
+        } else {
+          summarySource.innerText = currentLang === 'en' ? '📱 USB/ADB (select Desktop or Zip)' : '📱 USB/ADB (выберите Desktop или Zip)';
+          summaryMode.innerText = t.summaryRealMode;
+          summaryMode.style.color = 'var(--text-muted)';
+        }
       }
 
       if (targetBackup) {
@@ -2107,6 +2126,14 @@
       if (migrationDirection === 'android-to-ios') {
         if (activeTab === 'desktop') sourcePath = document.getElementById('viberDbInput').value.trim();
         if (activeTab === 'zip') sourcePath = document.getElementById('viberZipInput').value.trim();
+        if (activeTab === 'usb') {
+          const adbDev = (systemDevices && systemDevices.android && systemDevices.android.devices && systemDevices.android.devices.length > 0)
+            ? systemDevices.android.devices[0]
+            : null;
+          if (adbDev && adbDev.extractedDbPath) {
+            sourcePath = adbDev.extractedDbPath;
+          }
+        }
         targetPath = document.getElementById('targetBackupInput').value.trim() || null;
       } else {
         sourcePath = document.getElementById('sourceIosBackupInput').value.trim() || null;

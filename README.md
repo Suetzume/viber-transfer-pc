@@ -2,8 +2,8 @@
 
 <div align="center">
 
-[![Release](https://img.shields.io/badge/version-v3.2.0-blue.svg?style=for-the-badge&logo=github)](https://github.com/Suetzume/viber-transfer-pc/releases)
-[![Tests](https://img.shields.io/badge/tests-79%2F79%20passed%20(100%25)-success.svg?style=for-the-badge&logo=checkmarx)](tests/)
+[![Release](https://img.shields.io/badge/version-v3.3.0-blue.svg?style=for-the-badge&logo=github)](https://github.com/Suetzume/viber-transfer-pc/releases)
+[![Tests](https://img.shields.io/badge/tests-84%2F84%20passed%20(100%25)-success.svg?style=for-the-badge&logo=checkmarx)](tests/)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20x64-informational.svg?style=for-the-badge&logo=windows)](https://microsoft.com)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge)](LICENSE)
 [![Zero Data Loss](https://img.shields.io/badge/Zero--Data--Loss-Guaranteed-gold.svg?style=for-the-badge&logo=securityscorecard)](#гарантия-целостности-zero-data-loss)
@@ -185,9 +185,12 @@ flowchart TD
 
 Проект разработан по методологии **TDD (Test-Driven Development)** с соблюдением принципа гарантированной сохранности данных (Zero Data Loss).
 
-Все 20 тестовых сьютов выполняются встроенным тест-раннером Node.js:
+Все 21 тестовый сьют выполняются встроенным тест-раннером Node.js:
 ```powershell
-# Запуск всех 79 тестов
+# Развертывание виртуальных эмуляторов Android (Pixel 8 Pro ADB) и iPhone 15 Pro (iTunes MobileSync)
+Setup_Emulators.bat
+
+# Запуск всех 84 тестов
 Run_Tests.bat
 # или через npm
 npm test
@@ -210,15 +213,16 @@ npm run benchmark
 | `migration-engine.test.js` | Сквозная склейка пайплайна (Zero Data Loss) | ✅ PASS |
 | `bridge-server.test.js` | REST API эндпоинты, обработка ошибок, SSE стриминг | ✅ PASS |
 | `devices.test.js` | Аппаратный опрос ADB, Apple MobileSync, статус служб | ✅ PASS |
-| `stage2-wizard.test.js` | Интерактивный визард, работа с реальными файлами | ✅ PASS |
-| `stage3-viber-desktop.test.js` | Автообнаружение профилей Viber Desktop, запуск процесса | ✅ PASS |
-| `stage4-google-drive.test.js` | Извлечение архивов Google Drive, парсинг сжатых баз | ✅ PASS |
-| `stage5-apple-restore.test.js` | Проверка шифрования бэкапа, защита Find My, запуск проводника | ✅ PASS |
-| `stage6-bidirectional.test.js` | Полный цикл реверс-миграции iOS ➔ Android | ✅ PASS |
+| `wizard-stage2.test.js` | Интерактивный визард, работа с реальными файлами | ✅ PASS |
+| `stage3-desktop-assistant.test.js` | Автообнаружение профилей Viber Desktop, запуск процесса | ✅ PASS |
+| `stage4-media-transfer.test.js` | Извлечение архивов Google Drive, парсинг сжатых баз | ✅ PASS |
+| `stage5-apple-guards.test.js` | Проверка шифрования бэкапа, защита Find My, запуск проводника | ✅ PASS |
+| `stage6-reverse-migration.test.js` | Полный цикл реверс-миграции iOS ➔ Android | ✅ PASS |
 | `stage7-i18n.test.js` | Двуязычный интерфейс RU/EN, полнота словарей I18N, no-cache | ✅ PASS |
+| `stage8-emulator-e2e.test.js` | Виртуальные эмуляторы Android ADB (Pixel 8 Pro) & iPhone 15 Pro MobileSync | ✅ PASS |
 | `standalone-exe.test.js` | Запуск и сетевая доступность ViberTransfer.exe | ✅ PASS |
 | `stress-benchmark.test.js` | Стресс-тест на высокой нагрузке (68 000+ сообщ./сек) | ✅ PASS |
-| **ИТОГО** | **79 тестов / 20 сьютов** | **100% PASS** |
+| **ИТОГО** | **84 теста / 21 сьют** | **100% PASS** |
 
 ---
 

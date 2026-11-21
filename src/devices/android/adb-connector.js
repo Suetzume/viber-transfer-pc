@@ -11,8 +11,46 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
 const { execSync } = require('node:child_process');
 const { detectLocalViberDesktop } = require('../../engine/pipeline/migration-engine');
+
+/**
+ * Автоматически подключает ADB к локальному Android-эмулятору (BlueStacks 5 / LDPlayer), если он запущен
+ * @param {string} adbExecutable
+ */
+function tryAutoConnectLocalEmulator(adbExecutable) {
+  if (process.platform !== 'win32' || !adbExecutable) return;
+  const bstConfPath = 'C:\\ProgramData\\BlueStacks_nxt\\bluestacks.conf';
+  if (!fs.existsSync(bstConfPath)) return;
+
+  try {
+    // Проверяем, запущен ли процесс эмулятора HD-Player.exe
+    const taskOut = execSync('tasklist /FI "IMAGENAME eq HD-Player.exe" /NH', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore'],
+      timeout: 1000
+    });
+    if (!taskOut || !taskOut.toLowerCase().includes('hd-player.exe')) return;
+
+    const ports = new Set(['5555']);
+    const conf = fs.readFileSync(bstConfPath, 'utf8');
+    const matches = conf.matchAll(/adb_port="(\d+)"/g);
+    for (const m of matches) {
+      if (m[1] && m[1] !== '0') ports.add(m[1]);
+    }
+
+    for (const port of ports) {
+      try {
+        execSync(`"${adbExecutable}" connect 127.0.0.1:${port}`, {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'ignore'],
+          timeout: 1200
+        });
+      } catch (_) {}
+    }
+  } catch (_) {}
+}
 
 /**
  * Парсит текстовый вывод команды `adb devices -l`
@@ -173,13 +211,23 @@ function scanAndroidDevices(options = {}) {
 
   try {
     const timeout = options.timeoutMs || 3000;
-    const output = execSync(`"${adbExecutable}" devices -l`, {
+    let output = execSync(`"${adbExecutable}" devices -l`, {
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
       timeout
     });
 
-    const devices = parseAdbDevicesOutput(output);
+    let devices = parseAdbDevicesOutput(output);
+    if (devices.length === 0) {
+      tryAutoConnectLocalEmulator(adbExecutable);
+      output = execSync(`"${adbExecutable}" devices -l`, {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout
+      });
+      devices = parseAdbDevicesOutput(output);
+    }
+
     const pnpPhones = devices.length === 0 ? detectWindowsPnpPhones() : [];
 
     // Дополнительный опрос параметров для обнаруженных устройств
@@ -196,6 +244,28 @@ function scanAndroidDevices(options = {}) {
         } catch (_) {
           dev.viberInstalled = false;
         }
+
+        // Проверка наличия базы Viber на эмуляторе/устройстве (/sdcard/viber_messages или /data/local/tmp/viber_messages)
+        try {
+          const dbCheck = execSync(`"${adbExecutable}" -s ${dev.serial} shell "ls /sdcard/viber_messages /data/local/tmp/viber_messages 2>/dev/null"`, {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'ignore'],
+            timeout: 1500
+          }).trim();
+          if (dbCheck.includes('viber_messages')) {
+            dev.viberInstalled = true;
+            const remotePath = dbCheck.split(/\r?\n/)[0].trim();
+            const safeSerial = dev.serial.replace(/[^a-zA-Z0-9_-]/g, '_');
+            const localPulledDb = path.join(os.tmpdir(), `viber_adb_pulled_${safeSerial}.db`);
+            execSync(`"${adbExecutable}" -s ${dev.serial} pull "${remotePath}" "${localPulledDb}"`, {
+              stdio: ['pipe', 'pipe', 'ignore'],
+              timeout: 3000
+            });
+            if (fs.existsSync(localPulledDb)) {
+              dev.extractedDbPath = localPulledDb;
+            }
+          }
+        } catch (_) {}
 
         // Версия Android
         try {
